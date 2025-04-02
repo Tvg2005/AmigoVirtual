@@ -20,23 +20,23 @@ class Message(BaseModel):
 @app.post("/chat")
 async def chat(msg: Message):
     try:
-        # Substitua pela sua chave de API do OpenRouter
-        API_KEY = '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'
+        # Chave de API do OpenRouter
+        API_KEY = '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'
         API_URL = 'https://openrouter.ai/api/v1/chat/completions'
 
-        # Defina os cabeçalhos para a requisição da API
+        # Cabeçalhos para a requisição da API
         headers = {
             'Authorization': f'Bearer {API_KEY}',
             'Content-Type': 'application/json'
         }
 
-        # Defina o payload da requisição (dados)
+        # Requisição
         data = {
-            "model": "google/gemma-3-27b-it:free",
+            "model": "deepseek/deepseek-chat:free",
             "messages": [{"role": "user", "content": msg.text}]
         }
 
-        # Envie a requisição POST para a API DeepSeek
+        # Requisição POST para a API DeepSeek
         response = requests.post(API_URL, json=data, headers=headers)
 
         # Verifique se a requisição foi bem-sucedida
