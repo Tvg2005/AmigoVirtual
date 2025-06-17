@@ -5,6 +5,7 @@ import Desktop from './Desktop/Desktop';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
+import MedicationReminders from './pages/MedicationReminders';
 import Chatbot from './components/ChatBot';
 import ChatBotButton from './components/ChatBotButton';
 
@@ -19,7 +20,7 @@ function App() {
     <Router>
       <div className="min-h-screen bg-gray-50">
         <Routes>
-          {/* Homepage */}
+          {/* Homepage - Now Desktop */}
           <Route path="/" element={<Desktop />} />
 
           {/* Login */}
@@ -39,6 +40,9 @@ function App() {
               </div>
             } 
           />
+
+          {/* Medication Reminders */}
+          <Route path="/medication-reminders" element={<MedicationReminders />} />
         </Routes>
       </div>
     </Router>

@@ -1,8 +1,108 @@
-import React from 'react';
-import { Home } from 'lucide-react';
-import FontButton from './FontButton'; // Importação do botão de fonte
+import React, { useState, useEffect } from 'react';
+import { Home, Bell } from 'lucide-react';
+import FontButton from './FontButton';
+import { supabase } from '../lib/supabase';
+
+interface Medication {
+  id: string;
+  name: string;
+  frequency: string;
+  time: string;
+  days: string[];
+  user_id: string;
+  created_at: string;
+}
+
+interface MedicationLog {
+  id: string;
+  medication_id: string;
+  taken_at: string;
+  created_at: string;
+}
+
+const FULL_DAYS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
 
 const Navigation: React.FC = () => {
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [todayMedications, setTodayMedications] = useState<Medication[]>([]);
+  const [medicationLogs, setMedicationLogs] = useState<MedicationLog[]>([]);
+
+  useEffect(() => {
+    fetchTodayMedications();
+    fetchMedicationLogs();
+  }, []);
+
+  const fetchTodayMedications = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const today = new Date();
+      const currentDay = FULL_DAYS[today.getDay()];
+
+      const { data, error } = await supabase
+        .from('medications')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      const todayMeds = (data || []).filter(med => 
+        med.days.includes(currentDay)
+      );
+
+      setTodayMedications(todayMeds);
+    } catch (error) {
+      console.error('Error fetching today medications:', error);
+    }
+  };
+
+  const fetchMedicationLogs = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const today = new Date();
+      const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+
+      const { data, error } = await supabase
+        .from('medication_logs')
+        .select(`
+          *,
+          medications!inner(user_id)
+        `)
+        .gte('taken_at', startOfDay.toISOString())
+        .lt('taken_at', endOfDay.toISOString())
+        .eq('medications.user_id', user.id);
+
+      if (error) throw error;
+      setMedicationLogs(data || []);
+    } catch (error) {
+      console.error('Error fetching medication logs:', error);
+    }
+  };
+
+  const isMedicationTaken = (medicationId: string, medicationTime: string) => {
+    const today = new Date();
+    const [hours, minutes] = medicationTime.split(':');
+    const medicationDateTime = new Date(today.getFullYear(), today.getMonth(), today.getDate(), parseInt(hours), parseInt(minutes));
+    
+    return medicationLogs.some(log => {
+      const logDate = new Date(log.taken_at);
+      const logMedicationTime = new Date(today.getFullYear(), today.getMonth(), today.getDate(), logDate.getHours(), logDate.getMinutes());
+      
+      return log.medication_id === medicationId && 
+             Math.abs(logMedicationTime.getTime() - medicationDateTime.getTime()) < 30 * 60 * 1000;
+    });
+  };
+
+  const getAvailableMedications = () => {
+    return todayMedications.filter(med => !isMedicationTaken(med.id, med.time));
+  };
+
+  const availableMedications = getAvailableMedications();
+
   return (
     <div>
       <nav className="bg-white shadow-lg">
@@ -23,23 +123,48 @@ const Navigation: React.FC = () => {
 
             {/* Direita - Botão de Fonte e Notificações */}
             <div className="flex items-center gap-4">
-              <FontButton /> {/* Botão de alterar fonte */}
-              <button className="p-2 rounded-full text-gray-600 hover:text-gray-900">
-                <span className="sr-only">Ver notificações</span>
-                <svg
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
+              <FontButton />
+              <div className="relative">
+                <button 
+                  onClick={() => setShowNotifications(!showNotifications)}
+                  className="p-2 rounded-full text-gray-600 hover:text-gray-900 relative"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                  />
-                </svg>
-              </button>
+                  <span className="sr-only">Ver notificações</span>
+                  <Bell className="h-6 w-6" />
+                  {availableMedications.length > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      {availableMedications.length}
+                    </span>
+                  )}
+                </button>
+
+                {/* Dropdown de Notificações */}
+                {showNotifications && (
+                  <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border z-50">
+                    <div className="p-4 border-b">
+                      <h3 className="font-semibold text-gray-900">Lembretes de Hoje</h3>
+                    </div>
+                    <div className="max-h-64 overflow-y-auto">
+                      {availableMedications.length > 0 ? (
+                        availableMedications.map((medication) => (
+                          <div key={medication.id} className="p-3 border-b last:border-b-0 hover:bg-gray-50">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="font-medium text-gray-900">{medication.name}</p>
+                                <p className="text-sm text-gray-600">{medication.time}</p>
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="p-4 text-center text-gray-500">
+                          Nenhum lembrete pendente
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

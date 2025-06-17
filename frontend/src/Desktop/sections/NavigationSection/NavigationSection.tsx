@@ -45,15 +45,27 @@ export const NavigationSection = (): JSX.Element => {
         </NavigationMenuList>
       </NavigationMenu>
 
-      {/* Registration Button */}
-      <div className="p-1.5 rounded-xl border border-solid border-[#ffffff26]">
-        <Button className="w-[109px] h-[30px] px-[15px] py-0.5 bg-[#69b0cd] rounded-lg border border-solid border-[#ffffff26] shadow-[inset_0px_0px_6px_3px_#ffffff40] backdrop-blur-[7px] backdrop-brightness-[100%] [-webkit-backdrop-filter:blur(7px)_brightness(100%)]">
-          <Link to="/register" className="block w-full h-full">
-            <span className="[font-family:'Inter',Helvetica] font-medium text-white text-sm text-center leading-[26px] whitespace-nowrap">
-              Registre-se
-            </span>
-          </Link>
-        </Button>
+      {/* Login and Registration Buttons */}
+      <div className="flex items-center gap-4">
+        <div className="p-1.5 rounded-xl border border-solid border-[#ffffff26]">
+          <Button className="w-[109px] h-[30px] px-[15px] py-0.5 bg-transparent border border-[#69b0cd] text-[#69b0cd] rounded-lg hover:bg-[#69b0cd] hover:text-white transition-colors shadow-[inset_0px_0px_6px_3px_#ffffff40] backdrop-blur-[7px] backdrop-brightness-[100%] [-webkit-backdrop-filter:blur(7px)_brightness(100%)]">
+            <Link to="/login" className="block w-full h-full">
+              <span className="[font-family:'Inter',Helvetica] font-medium text-sm text-center leading-[26px] whitespace-nowrap">
+                Login
+              </span>
+            </Link>
+          </Button>
+        </div>
+        
+        <div className="p-1.5 rounded-xl border border-solid border-[#ffffff26]">
+          <Button className="w-[109px] h-[30px] px-[15px] py-0.5 bg-[#69b0cd] rounded-lg border border-solid border-[#ffffff26] shadow-[inset_0px_0px_6px_3px_#ffffff40] backdrop-blur-[7px] backdrop-brightness-[100%] [-webkit-backdrop-filter:blur(7px)_brightness(100%)]">
+            <Link to="/register" className="block w-full h-full">
+              <span className="[font-family:'Inter',Helvetica] font-medium text-white text-sm text-center leading-[26px] whitespace-nowrap">
+                Registre-se
+              </span>
+            </Link>
+          </Button>
+        </div>
       </div>
     </header>
   );

@@ -49,7 +49,8 @@ export default function Register() {
     }
 
     try {
-      const { error } = await supabase.auth.signUp({
+      // First, sign up the user
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
@@ -64,7 +65,27 @@ export default function Register() {
         }
       });
 
-      if (error) throw error;
+      if (authError) throw authError;
+
+      // The trigger will automatically create the profile
+      // Wait a moment for the trigger to complete
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Update the profile with additional information
+      if (authData.user) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({
+            name: formData.fullName,
+            // Add other profile fields if needed
+          })
+          .eq('id', authData.user.id);
+
+        if (profileError) {
+          console.warn('Profile update error:', profileError);
+          // Don't throw here as the main registration was successful
+        }
+      }
       
       // Redirecionar diretamente para dashboard após registro bem-sucedido
       navigate('/dashboard');
@@ -80,7 +101,7 @@ export default function Register() {
       <div className="w-full z-10 flex flex-col md:flex-row items-center justify-center">
         <div className="md:w-1/2 flex items-center justify-center p-8">
           <div className="text-center">
-            <img src="../../public/Icon.png" alt="WiseConnect Logo" className="w-50 h-40 mx-auto" />
+            <img src="/Icon.png" alt="WiseConnect Logo" className="w-50 h-40 mx-auto" />
           </div>
         </div>
 

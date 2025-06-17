@@ -1,5 +1,6 @@
 import React from "react";
 import { GamepadIcon, Pill, BookOpen, Bot } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const MainPageComponents: React.FC = () => { 
 return(
@@ -15,13 +16,13 @@ return(
     </div>
 
     {/* Lembretes de Remédios */}
-    <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer">
+    <Link to="/medication-reminders" className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer">
       <div className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-lg mb-4">
         <Pill className="h-6 w-6 text-blue-600" />
       </div>
       <h2 className="text-xl font-semibold text-gray-900 mb-2">Lembretes de Remédios</h2>
       <p className="text-gray-600">Organize seus horários de medicamentos</p>
-    </div>
+    </Link>
 
     {/* Dicas e Conteúdos */}
     <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer">
