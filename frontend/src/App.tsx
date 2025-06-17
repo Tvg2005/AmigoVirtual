@@ -1,45 +1,47 @@
 import { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+
+import Desktop from './Desktop/Desktop';
 import Login from './pages/Login';
+import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
-import Footer from './components/Footer';
 import Chatbot from './components/ChatBot';
 import ChatBotButton from './components/ChatBotButton';
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // Estado de login
-  const [isChatOpen, setIsChatOpen] = useState(false); // Estado do chatbot
-  const [fontSize] = useState('normal'); // Estado do tamanho da fonte
-
-  const handleLogin = () => {
-    setIsLoggedIn(true); // Define o usuário como logado
-  };
+  const [isChatOpen, setIsChatOpen] = useState<boolean>(false);
 
   const toggleChat = () => {
-    setIsChatOpen((prev) => !prev); // Alterna a visibilidade do chatbot
+    setIsChatOpen((prev: boolean) => !prev);
   };
 
   return (
-    <div className={`min-h-screen bg-gray-50 ${fontSize === 'large' ? 'text-lg' : 'text-base'}`}>
-      {!isLoggedIn ? (
-        <Login onLogin={handleLogin} /> 
-      ) : (
-        <div className="relative">
-          <Dashboard />
+    <Router>
+      <div className="min-h-screen bg-gray-50">
+        <Routes>
+          {/* Homepage */}
+          <Route path="/" element={<Desktop />} />
 
-          {/* Botão flutuante do Chatbot */}
-          <ChatBotButton onClick={toggleChat} />
+          {/* Login */}
+          <Route path="/login" element={<Login />} />
 
-          {/* Exibir Chatbot apenas quando `isChatOpen` for true */}
-          {isChatOpen && <Chatbot onClose={toggleChat} />}
+          {/* Registro */}
+          <Route path="/register" element={<Register />} />
 
-          {/* Rodapé */}
-          <Footer />
-
-          {/* Botão para alterar o tamanho da fonte */}
-        
-        </div>
-      )}
-    </div>
+          {/* Dashboard */}
+          <Route 
+            path="/dashboard" 
+            element={
+              <div className="relative">
+                <Dashboard />
+                <ChatBotButton onClick={toggleChat} />
+                {isChatOpen && <Chatbot onClose={toggleChat} />}
+              </div>
+            } 
+          />
+        </Routes>
+      </div>
+    </Router>
   );
 }
 

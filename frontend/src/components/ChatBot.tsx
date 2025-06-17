@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { X, Volume2, Bot, Mic, Pause } from "lucide-react";
+import { X, Volume2, Bot, Mic, Pause, VolumeX } from "lucide-react";
 import { 
   SpeechRecognition, 
   SpeechRecognitionEvent, 
@@ -16,8 +16,17 @@ const Chatbot: React.FC<ChatbotProps> = ({ onClose }) => {
   const [loading, setLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [recognition, setRecognition] = useState<SpeechRecognition | null>(null);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [selectedVoice, setSelectedVoice] = useState<SpeechSynthesisVoice | null>(null);
+  
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const currentInputBeforeSpeech = useRef<string>("");
+  const currentUtterance = useRef<SpeechSynthesisUtterance | null>(null);
+
+  // Carrega uma mensagem inicial
+  useEffect(() => {
+    setMessages([{ role: "bot", text: "Olá! 😊 Que bom ter você aqui. Estou aqui pra te fazer companhia e conversar sobre o que você quiser, sem pressa, estou aqui para você."}]);
+  }, []);
 
   //!IMPORTANTE! FUNÇÃO QUE AJUSTA AUTOMATICAMENTE A ALTURA DO CAMPO DE INPUT CONFORME O TEXTO É INSERIDO!!
   const autoResizeTextarea = () => {
@@ -33,11 +42,35 @@ const Chatbot: React.FC<ChatbotProps> = ({ onClose }) => {
     autoResizeTextarea();
   }, [input]);
 
-
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.focus();
     }
+  }, []);
+
+  // Carregar vozes disponíveis
+  useEffect(() => {
+    const loadVoices = () => {
+      const voices = window.speechSynthesis.getVoices();
+      // Tentar encontrar uma voz em português
+      const ptVoice = voices.find(voice => voice.lang.includes('pt'));
+      if (ptVoice) {
+        setSelectedVoice(ptVoice);
+      } else if (voices.length > 0) {
+        setSelectedVoice(voices[0]); // Usar a primeira voz disponível se não encontrar português
+      }
+    };
+
+    // Tentar carregar vozes imediatamente
+    loadVoices();
+    
+    // Configurar evento para quando as vozes forem carregadas (necessário em alguns navegadores)
+    window.speechSynthesis.addEventListener('voiceschanged', loadVoices);
+    
+    return () => {
+      window.speechSynthesis.removeEventListener('voiceschanged', loadVoices);
+      window.speechSynthesis.cancel(); // Parar qualquer fala ao desmontar
+    };
   }, []);
 
   //!IMPORTANTE! COMPONENTE REACT QUE UTILIZA A API DE RECONHECIMENTO DE FALA!!
@@ -137,6 +170,29 @@ const Chatbot: React.FC<ChatbotProps> = ({ onClose }) => {
     }
   };
 
+  // !!! Ler o texto em voz alta
+  const speakText = (text: string) => {
+    stopSpeaking();
+    
+    const utterance = new SpeechSynthesisUtterance(text);
+
+    if (selectedVoice) {
+      utterance.voice = selectedVoice;
+    }
+
+    utterance.onstart = () => setIsSpeaking(true);
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => setIsSpeaking(false);
+    
+    currentUtterance.current = utterance;
+    window.speechSynthesis.speak(utterance);
+  };
+  
+  // Função para parar a fala
+  const stopSpeaking = () => {
+    window.speechSynthesis.cancel();
+    setIsSpeaking(false);
+  };
 
   //!IMPORTANTE! TRATAMENTO DE ENVIO E RESPOSTA COM A IA!!
   const sendMessage = async () => {
@@ -158,7 +214,12 @@ const Chatbot: React.FC<ChatbotProps> = ({ onClose }) => {
 
       if (!response.ok) throw new Error("Erro no servidor");
       const data = await response.json();
-      setMessages((prev) => [...prev, { role: "bot", text: data.reply || "Não foi possível obter uma resposta." }]);
+      const botReply = data.reply || "Não foi possível obter uma resposta.";
+      
+      setMessages((prev) => [...prev, { role: "bot", text: botReply }]);
+      
+      // Descomente a linha abaixo se quiser que o bot leia automaticamente as respostas
+      // speakText(botReply);
     } catch (error) {
       console.error("Erro ao conectar com o servidor:", error);
       setMessages((prev) => [...prev, { role: "bot", text: "Erro ao conectar com o servidor." }]);
@@ -185,12 +246,9 @@ const Chatbot: React.FC<ChatbotProps> = ({ onClose }) => {
       <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-blue-600 text-white rounded-t-lg">
         <div className="flex items-center gap-2">
           <Bot size={24} />
-          <h3 className="font-semibold">Assistente Virtual</h3>
+          <h3 className="font-semibold">Assistente virtual</h3>
         </div>
         <div className="flex gap-2">
-          <button className="p-1 hover:bg-blue-700 rounded" aria-label="Ler mensagem em voz alta">
-            <Volume2 size={20} />
-          </button>
           <button onClick={onClose} className="p-1 hover:bg-blue-700 rounded" aria-label="Fechar chat">
             <X size={20} />
           </button>
@@ -200,7 +258,19 @@ const Chatbot: React.FC<ChatbotProps> = ({ onClose }) => {
       <div className="h-96 p-4 overflow-y-auto">
         {messages.map((msg, index) => (
           <div key={index} className={`p-3 rounded-lg mb-4 max-w-[80%] ${msg.role === "user" ? "bg-blue-500 text-white ml-auto" : "bg-gray-200"}`}>
-            {msg.text}
+            <div className="flex justify-between items-start">
+              <div className="flex-1">{msg.text}</div>
+              {msg.role === "bot" && (
+                <button 
+                  className="ml-2 text-gray-600 p-1 hover:bg-gray-300 rounded-full flex-shrink-0" 
+                  onClick={() => isSpeaking ? stopSpeaking() : speakText(msg.text)}
+                  aria-label={isSpeaking ? "Parar leitura" : "Ler mensagem"}>
+                    
+                  {isSpeaking ? <VolumeX size={20} color="blue" /> : <Volume2 size={20} color="black" />}
+                
+                </button>
+              )}
+            </div>
           </div>
         ))}
         {loading && (
