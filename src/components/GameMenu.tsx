@@ -1,5 +1,5 @@
 import React from 'react';
-import { Spade as Spades, Grid3X3, Brain, Trophy, Clock, Star, Palette, Music, Puzzle } from 'lucide-react';
+import { Spade as Spades, Grid3X3, Brain, Trophy, Clock, Star, Palette, Music, Puzzle, BrickWall} from 'lucide-react';
 
 interface GameMenuProps {
   onGameSelect: (game: 'solitaire' | 'sudoku' | 'memory' | 'coloring' | 'music' | 'jigsaw' | 'crossword') => void;
@@ -59,8 +59,8 @@ const GameMenu: React.FC<GameMenuProps> = ({ onGameSelect }) => {
       id: 'crossword' as const,
       name: 'Palavras-cruzadas',
       description: 'Adivinhe as palavras',
-      icon: Puzzle,
-      color: 'bg-orange-500',
+      icon: BrickWall,
+      color: 'bg-red-500',
       difficulty: 'Médio'
     }
   ];

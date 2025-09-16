@@ -11,7 +11,7 @@ interface Clue {
   clue: string;
   answer: string;
   direction: 'across' | 'down';
-  startRow: number;
+  startRow: number; 
   startCol: number;
 }
 

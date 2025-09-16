@@ -115,8 +115,8 @@ const defaultAchievements: Achievement[] = [
     id: 'jigsaw-3x3-master',
     gameType: 'jigsaw',
     title: 'Mestre 3x3',
-    description: 'Complete um quebra-cabeça 3x3 em menos de 30 movimentos',
-    target: 30,
+    description: 'Complete um quebra-cabeça 3x3 em menos de 15 movimentos',
+    target: 15,
     type: 'moves',
     icon: '🧩',
     completed: false
@@ -125,8 +125,8 @@ const defaultAchievements: Achievement[] = [
     id: 'jigsaw-4x4-expert',
     gameType: 'jigsaw',
     title: 'Expert 4x4',
-    description: 'Complete um quebra-cabeça 4x4 em menos de 80 movimentos',
-    target: 80,
+    description: 'Complete um quebra-cabeça 4x4 em menos de 35 movimentos',
+    target: 35,
     type: 'moves',
     icon: '🎨',
     completed: false
@@ -135,8 +135,8 @@ const defaultAchievements: Achievement[] = [
     id: 'jigsaw-5x5-legend',
     gameType: 'jigsaw',
     title: 'Lenda 5x5',
-    description: 'Complete um quebra-cabeça 5x5 em menos de 150 movimentos',
-    target: 150,
+    description: 'Complete um quebra-cabeça 5x5 em menos de 50 movimentos',
+    target: 50,
     type: 'moves',
     icon: '🌟',
     completed: false
