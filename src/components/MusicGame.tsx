@@ -3,9 +3,10 @@ import { ArrowLeft, Music, Play, Pause } from 'lucide-react';
 
 interface MusicGameProps {
   onBack: () => void;
+  onAchievement: (gameType: string, type: 'moves' | 'time' | 'completion', value: number, metadata?: any) => void;
 }
 
-const MusicGame: React.FC<MusicGameProps> = ({ onBack }) => {
+const MusicGame: React.FC<MusicGameProps> = ({ onBack, onAchievement }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentSong, setCurrentSong] = useState<string[]>([]);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -63,6 +64,11 @@ const MusicGame: React.FC<MusicGameProps> = ({ onBack }) => {
   const handleNoteClick = (note: typeof notes[0]) => {
     playNote(note.frequency);
     setCurrentSong([...currentSong, note.note]);
+    
+    // Check composer achievement
+    if (currentSong.length + 1 >= 20) {
+      onAchievement('music', 'moves', currentSong.length + 1);
+    }
   };
 
   const playSong = async (song: typeof simpleSongs[0]) => {
@@ -79,6 +85,8 @@ const MusicGame: React.FC<MusicGameProps> = ({ onBack }) => {
     }
 
     setIsPlaying(false);
+    // Check first song achievement
+    onAchievement('music', 'completion', 1);
   };
 
   const clearSong = () => {

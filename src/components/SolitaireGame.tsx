@@ -10,9 +10,10 @@ interface Card {
 
 interface SolitaireGameProps {
   onBack: () => void;
+  onAchievement: (gameType: string, type: 'moves' | 'time' | 'completion', value: number, metadata?: any) => void;
 }
 
-const SolitaireGame: React.FC<SolitaireGameProps> = ({ onBack }) => {
+const SolitaireGame: React.FC<SolitaireGameProps> = ({ onBack, onAchievement }) => {
   const [deck, setDeck] = useState<Card[]>([]);
   const [waste, setWaste] = useState<Card[]>([]);
   const [foundations, setFoundations] = useState<Card[][]>([[], [], [], []]);
@@ -120,6 +121,14 @@ const SolitaireGame: React.FC<SolitaireGameProps> = ({ onBack }) => {
     // Implementation would go here for moving cards between piles
     setMoves(moves + 1);
     setSelectedCard(null);
+    
+    // Check if game is won (simplified check)
+    const allFoundationsFull = foundations.every(foundation => foundation.length === 13);
+    if (allFoundationsFull) {
+      setGameWon(true);
+      onAchievement('solitaire', 'completion', 1);
+      onAchievement('solitaire', 'moves', moves + 1);
+    }
   };
 
   const renderCard = (card: Card, index: number, pile: string) => {

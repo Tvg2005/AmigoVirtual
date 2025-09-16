@@ -3,9 +3,10 @@ import { ArrowLeft, RotateCcw, Trophy, Eye, EyeOff } from 'lucide-react';
 
 interface SudokuGameProps {
   onBack: () => void;
+  onAchievement: (gameType: string, type: 'moves' | 'time' | 'completion', value: number, metadata?: any) => void;
 }
 
-const SudokuGame: React.FC<SudokuGameProps> = ({ onBack }) => {
+const SudokuGame: React.FC<SudokuGameProps> = ({ onBack, onAchievement }) => {
   const [grid, setGrid] = useState<number[][]>(Array(9).fill(null).map(() => Array(9).fill(0)));
   const [initialGrid, setInitialGrid] = useState<number[][]>(Array(9).fill(null).map(() => Array(9).fill(0)));
   const [selectedCell, setSelectedCell] = useState<{row: number, col: number} | null>(null);
@@ -103,6 +104,9 @@ const SudokuGame: React.FC<SudokuGameProps> = ({ onBack }) => {
           row.every((cell, colIndex) => cell === solution[rowIndex][colIndex])
         )) {
           setGameWon(true);
+          // Check achievements
+          onAchievement('sudoku', 'completion', 1);
+          onAchievement('sudoku', 'moves', mistakes);
         }
       } else if (num !== 0) {
         setMistakes(mistakes + 1);

@@ -1,36 +1,40 @@
 import React, { useState } from 'react';
 import { Home, Users, Brain, PlayCircle, Trophy } from 'lucide-react';
-import GameMenu from './components/GameMenu';
-import SolitaireGame from './components/SolitaireGame';
-import SudokuGame from './components/SudokuGame';
-import MemoryGame from './components/MemoryGame';
-import ColoringGame from './components/ColoringGame';
-import MusicGame from './components/MusicGame';
-import JigsawGame from './components/JigsawGame';
-import CrosswordGame from './components/CrosswordGame'; 
+import { useAchievements } from './hooks/useAchievements';
+import AchievementsSection from './components/AchievementsSection';
+import AchievementNotification from './components/AchievementNotification';
+import GameMenu from '/src/components/GameMenu';
+import SolitaireGame from '/src/components/SolitaireGame';
+import SudokuGame from '/src/components/SudokuGame';
+import MemoryGame from '/src/components/MemoryGame';
+import ColoringGame from '/src/components/ColoringGame';
+import MusicGame from '/src/components/MusicGame';
+import JigsawGame from '/src/components/JigsawGame';
+import CrosswordGame from '/src/components/CrosswordGame'; 
 
 
-type GameType = 'menu' | 'solitaire' | 'sudoku' | 'memory' | 'coloring' | 'music' | 'jigsaw';
+type GameType = 'menu' | 'solitaire' | 'sudoku' | 'memory' | 'coloring' | 'music' | 'jigsaw' | 'crossword';
 
 function App() {
   const [currentGame, setCurrentGame] = useState<GameType>('menu');
+  const { notifications, removeNotification, checkAchievement } = useAchievements();
 
   const renderGame = () => {
     switch (currentGame) {
       case 'solitaire':
-        return <SolitaireGame onBack={() => setCurrentGame('menu')} />;
+        return <SolitaireGame onBack={() => setCurrentGame('menu')} onAchievement={checkAchievement} />;
       case 'sudoku':
-        return <SudokuGame onBack={() => setCurrentGame('menu')} />;
+        return <SudokuGame onBack={() => setCurrentGame('menu')} onAchievement={checkAchievement} />;
       case 'memory':
-        return <MemoryGame onBack={() => setCurrentGame('menu')} />;
+        return <MemoryGame onBack={() => setCurrentGame('menu')} onAchievement={checkAchievement} />;
       case 'coloring':
-        return <ColoringGame onBack={() => setCurrentGame('menu')} />;
+        return <ColoringGame onBack={() => setCurrentGame('menu')} onAchievement={checkAchievement} />;
       case 'music':
-        return <MusicGame onBack={() => setCurrentGame('menu')} />;
+        return <MusicGame onBack={() => setCurrentGame('menu')} onAchievement={checkAchievement} />;
       case 'jigsaw':
-        return <JigsawGame onBack={() => setCurrentGame('menu')} />;
+        return <JigsawGame onBack={() => setCurrentGame('menu')} onAchievement={checkAchievement} />;
       case 'crossword':
-        return <CrosswordGame onBack={() => setCurrentGame('menu')} />;
+        return <CrosswordGame onBack={() => setCurrentGame('menu')} onAchievement={checkAchievement} />;
       default:
         return <GameMenu onGameSelect={setCurrentGame} />;
     }
@@ -64,6 +68,11 @@ function App() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {currentGame === 'menu' && (
+          <div className="mb-8">
+            <AchievementsSection />
+          </div>
+        )}
         {renderGame()}
       </main>
 
@@ -74,6 +83,15 @@ function App() {
           </div>
         </div>
       </footer>
+
+      {/* Achievement Notifications */}
+      {notifications.map((notification) => (
+        <AchievementNotification
+          key={notification.id}
+          notification={notification}
+          onClose={removeNotification}
+        />
+      ))}
     </div>
   );
 }

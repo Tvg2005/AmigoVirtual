@@ -3,6 +3,7 @@ import { ArrowLeft, RotateCcw, Trophy, Lightbulb, Check } from 'lucide-react';
 
 interface CrosswordGameProps {
   onBack: () => void;
+  onAchievement: (gameType: string, type: 'moves' | 'time' | 'completion', value: number, metadata?: any) => void;
 }
 
 interface Clue {
@@ -21,13 +22,14 @@ interface Cell {
   userInput: string;
 }
 
-const CrosswordGame: React.FC<CrosswordGameProps> = ({ onBack }) => {
+const CrosswordGame: React.FC<CrosswordGameProps> = ({ onBack, onAchievement }) => {
   const [grid, setGrid] = useState<Cell[][]>([]);
   const [selectedCell, setSelectedCell] = useState<{row: number, col: number} | null>(null);
   const [selectedDirection, setSelectedDirection] = useState<'across' | 'down'>('across');
   const [gameWon, setGameWon] = useState(false);
   const [showHints, setShowHints] = useState(false);
   const [completedWords, setCompletedWords] = useState<number[]>([]);
+  const [usedHints, setUsedHints] = useState(false);
 
   const clues: Clue[] = [
     {
@@ -173,6 +175,8 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ onBack }) => {
     // Check if all words are completed
     if (completed.length === clues.length) {
       setGameWon(true);
+      // Check achievements
+      onAchievement('crossword', 'completion', 1, { usedHints });
     }
   };
 
@@ -324,6 +328,8 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ onBack }) => {
   const showHint = (clueNumber: number) => {
     const clue = clues.find(c => c.number === clueNumber);
     if (!clue) return;
+    
+    setUsedHints(true);
     
     const { startRow, startCol, answer, direction } = clue;
     const newGrid = [...grid];

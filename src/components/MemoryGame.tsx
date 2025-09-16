@@ -10,9 +10,10 @@ interface Card {
 
 interface MemoryGameProps {
   onBack: () => void;
+  onAchievement: (gameType: string, type: 'moves' | 'time' | 'completion', value: number, metadata?: any) => void;
 }
 
-const MemoryGame: React.FC<MemoryGameProps> = ({ onBack }) => {
+const MemoryGame: React.FC<MemoryGameProps> = ({ onBack, onAchievement }) => {
   const [cards, setCards] = useState<Card[]>([]);
   const [flippedCards, setFlippedCards] = useState<number[]>([]);
   const [matches, setMatches] = useState(0);
@@ -96,6 +97,10 @@ const MemoryGame: React.FC<MemoryGameProps> = ({ onBack }) => {
 
           if (matches + 1 === symbols.length) {
             setGameWon(true);
+            // Check achievements
+            onAchievement('memory', 'completion', 1);
+            onAchievement('memory', 'time', timeElapsed);
+            onAchievement('memory', 'moves', moves + 1);
           }
         }, 1000);
       } else {

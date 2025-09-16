@@ -1,16 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, RotateCcw, Palette, Download } from 'lucide-react';
-import casalIdosos from './components/casal_idosos.jpg';
-import fazendaFeliz from './components/fazenda_feliz.jpg';
-import flor from './components/flor.jpg';
-import passaros from './components/passaros.jpg';
+import casalIdosos from '/src/components/casal_idosos.jpg';
+import fazendaFeliz from '/src/components/fazenda_feliz.jpg';
+import flor from '/src/components/flor.jpg';
+import passaros from '/src/components/passaros.jpg';
 
 
 interface ColoringGameProps {
   onBack: () => void;
+  onAchievement: (gameType: string, type: 'moves' | 'time' | 'completion', value: number, metadata?: any) => void;
 }
 
-export default function ColoringGame({ onBack }: ColoringGameProps) {
+export default function ColoringGame({ onBack, onAchievement }: ColoringGameProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [selectedColor, setSelectedColor] = useState('#FF6B6B');
   const [isDrawing, setIsDrawing] = useState(false);
@@ -18,6 +19,8 @@ export default function ColoringGame({ onBack }: ColoringGameProps) {
   const [brushSize, setBrushSize] = useState(6);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [originalImageData, setOriginalImageData] = useState<ImageData | null>(null);
+  const [startTime, setStartTime] = useState<Date | null>(null);
+  const [hasDrawn, setHasDrawn] = useState(false);
 
   const colors = [
     '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
@@ -148,12 +151,21 @@ export default function ColoringGame({ onBack }: ColoringGameProps) {
 
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!imageLoaded) return;
+    
+    if (!startTime) {
+      setStartTime(new Date());
+    }
+    
     setIsDrawing(true);
     draw(e);
   };
 
   const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!isDrawing || !imageLoaded) return;
+    
+    if (!hasDrawn) {
+      setHasDrawn(true);
+    }
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -176,6 +188,12 @@ export default function ColoringGame({ onBack }: ColoringGameProps) {
   const downloadImage = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+    
+    if (hasDrawn && startTime) {
+      const timeSpent = Math.floor((new Date().getTime() - startTime.getTime()) / 1000);
+      onAchievement('coloring', 'completion', 1);
+      onAchievement('coloring', 'time', timeSpent);
+    }
 
     const link = document.createElement('a');
     link.download = `colorir-${drawings[currentDrawing].name}.png`;

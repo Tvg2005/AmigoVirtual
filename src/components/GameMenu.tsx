@@ -118,7 +118,7 @@ const GameMenu: React.FC<GameMenuProps> = ({ onGameSelect }) => {
         <div className="text-center">
           <Trophy className="w-16 h-16 text-blue-500 mx-auto mb-4" />
           <h3 className="text-2xl font-bold text-blue-800 mb-4">
-            Benefícios dos Jogos
+            Por que Jogar?
           </h3>
           <div className="grid md:grid-cols-3 gap-6">
             <div className="flex flex-col items-center p-4">
@@ -139,7 +139,7 @@ const GameMenu: React.FC<GameMenuProps> = ({ onGameSelect }) => {
               <Star className="w-12 h-12 text-blue-500 mb-3" />
               <h4 className="font-semibold text-blue-800 mb-2">Concentração</h4>
               <p className="text-blue-600 text-center">
-                Melhora o foco e a atenção
+                Melhora o foco e conquiste objetivos
               </p>
             </div>
           </div>
