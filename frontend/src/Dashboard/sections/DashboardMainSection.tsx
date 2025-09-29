@@ -1,0 +1,469 @@
+import React, { useState, useEffect } from "react";
+import {
+  CheckIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  HeadphonesIcon,
+  LightbulbIcon,
+  PillIcon,
+} from "lucide-react";
+
+import { Button } from "../components/button";
+import { Card, CardContent } from "../components/card";
+import { Input } from "../components/input";
+import { supabase } from '../../../lib/supabase.ts';
+
+interface Medication {
+  id: string;
+  name: string;
+  frequency: string;
+  time: string;
+  days: string[];
+  user_id: string;
+  created_at: string;
+}
+
+interface MedicationLog {
+  id: string;
+  medication_id: string;
+  taken_at: string;
+  created_at: string;
+}
+
+const FULL_DAYS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+
+export const DashboardMainSection = (): JSX.Element => {
+  const [chatMessage, setChatMessage] = useState("");
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [currentGameSlide, setCurrentGameSlide] = useState(0);
+  const [todayMedications, setTodayMedications] = useState<Medication[]>([]);
+  const [medicationLogs, setMedicationLogs] = useState<MedicationLog[]>([]);
+
+  // Jogos disponíveis
+  const games = [
+    { id: 1, name: "Quebra-cabeças", icon: "🧩", color: "bg-blue-100" },
+    { id: 2, name: "Palavras Cruzadas", icon: "📝", color: "bg-yellow-100" },
+    { id: 3, name: "Memória", icon: "🧠", color: "bg-purple-100" },
+    { id: 4, name: "Sudoku", icon: "🔢", color: "bg-green-100" },
+    { id: 5, name: "Jogo da Velha", icon: "❌", color: "bg-red-100" },
+    { id: 6, name: "Caça Palavras", icon: "🔍", color: "bg-pink-100" },
+  ];
+
+  useEffect(() => {
+    fetchTodayMedications();
+    fetchMedicationLogs();
+  }, []);
+
+  const fetchTodayMedications = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const today = new Date();
+      const currentDay = FULL_DAYS[today.getDay()];
+
+      const { data, error } = await supabase
+        .from('medications')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      const todayMeds = (data || []).filter(med => 
+        med.days.includes(currentDay)
+      );
+
+      setTodayMedications(todayMeds);
+    } catch (error) {
+      console.error('Error fetching today medications:', error);
+    }
+  };
+
+  const fetchMedicationLogs = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const today = new Date();
+      const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+
+      const { data, error } = await supabase
+        .from('medication_logs')
+        .select(`
+          *,
+          medications!inner(user_id)
+        `)
+        .gte('taken_at', startOfDay.toISOString())
+        .lt('taken_at', endOfDay.toISOString())
+        .eq('medications.user_id', user.id);
+
+      if (error) throw error;
+      setMedicationLogs(data || []);
+    } catch (error) {
+      console.error('Error fetching medication logs:', error);
+    }
+  };
+
+  const isMedicationTaken = (medicationId: string, medicationTime: string) => {
+    const today = new Date();
+    const [hours, minutes] = medicationTime.split(':');
+    const medicationDateTime = new Date(today.getFullYear(), today.getMonth(), today.getDate(), parseInt(hours), parseInt(minutes));
+    
+    return medicationLogs.some(log => {
+      const logDate = new Date(log.taken_at);
+      const logMedicationTime = new Date(today.getFullYear(), today.getMonth(), today.getDate(), logDate.getHours(), logDate.getMinutes());
+      
+      return log.medication_id === medicationId && 
+             Math.abs(logMedicationTime.getTime() - medicationDateTime.getTime()) < 30 * 60 * 1000;
+    });
+  };
+
+  const toggleMedication = async (medicationId: string, medicationTime: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const isTaken = isMedicationTaken(medicationId, medicationTime);
+      
+      if (isTaken) {
+        // Remove log if already taken
+        const today = new Date();
+        const [hours, minutes] = medicationTime.split(':');
+        const medicationDateTime = new Date(today.getFullYear(), today.getMonth(), today.getDate(), parseInt(hours), parseInt(minutes));
+        
+        const logToRemove = medicationLogs.find(log => {
+          const logDate = new Date(log.taken_at);
+          const logMedicationTime = new Date(today.getFullYear(), today.getMonth(), today.getDate(), logDate.getHours(), logDate.getMinutes());
+          
+          return log.medication_id === medicationId && 
+                 Math.abs(logMedicationTime.getTime() - medicationDateTime.getTime()) < 30 * 60 * 1000;
+        });
+
+        if (logToRemove) {
+          const { error } = await supabase
+            .from('medication_logs')
+            .delete()
+            .eq('id', logToRemove.id);
+
+          if (error) throw error;
+        }
+      } else {
+        // Add log if not taken
+        const today = new Date();
+        const [hours, minutes] = medicationTime.split(':');
+        const takenAt = new Date(today.getFullYear(), today.getMonth(), today.getDate(), parseInt(hours), parseInt(minutes));
+
+        const { error } = await supabase
+          .from('medication_logs')
+          .insert([{
+            medication_id: medicationId,
+            taken_at: takenAt.toISOString()
+          }]);
+
+        if (error) throw error;
+      }
+
+      // Refresh logs after update
+      fetchMedicationLogs();
+    } catch (error) {
+      console.error('Error toggling medication:', error);
+    }
+  };
+
+  const getMedicationsByTimeRange = (startHour: number, endHour: number) => {
+    return todayMedications.filter(med => {
+      const [hours] = med.time.split(':');
+      const medicationHour = parseInt(hours);
+      return medicationHour >= startHour && medicationHour < endHour;
+    });
+  };
+
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (chatMessage.trim()) {
+      console.log("Enviando mensagem:", chatMessage);
+      setChatMessage("");
+    }
+  };
+
+  const handleDateNavigation = (direction: "prev" | "next") => {
+    const newDate = new Date(currentDate);
+    newDate.setDate(currentDate.getDate() + (direction === "next" ? 1 : -1));
+    setCurrentDate(newDate);
+  };
+
+  const handleGameSlide = (direction: "prev" | "next") => {
+    if (direction === "next") {
+      setCurrentGameSlide(prev => (prev + 1) % Math.ceil(games.length / 4));
+    } else {
+      setCurrentGameSlide(prev => (prev - 1 + Math.ceil(games.length / 4)) % Math.ceil(games.length / 4));
+    }
+  };
+
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('pt-BR', { 
+      day: 'numeric', 
+      month: 'short', 
+      year: 'numeric' 
+    });
+  };
+
+  const morningMeds = getMedicationsByTimeRange(7, 12);
+  const afternoonMeds = getMedicationsByTimeRange(12, 18);
+  const gamesPerSlide = 4;
+  const currentGames = games.slice(currentGameSlide * gamesPerSlide, (currentGameSlide + 1) * gamesPerSlide);
+
+  return (
+    <main className="fixed top-20 left-80 right-0 bottom-0 p-4 overflow-auto" style={{ backgroundColor: '#E8F0F8' }}>
+      <div className="grid grid-cols-2 gap-4 h-full">
+
+        {/* Chat Interface - Top Left */}
+    <Card className="rounded-[20px] shadow-lg border-0 relative overflow-hidden" style={{ backgroundColor: '#B9D0E9', padding: '50px' }}>
+          <CardContent className="p-0 relative h-full flex flex-col">
+            {/* Background Effects */}
+            <div className="absolute w-32 h-32 top-4 left-4 rounded-full blur-lg opacity-30" style={{ background: 'radial-gradient(circle, rgba(173, 216, 255, 0.3) 0%, transparent 70%)' }} />
+            <div className="absolute w-40 h-40 bottom-4 right-4 rounded-full blur-lg opacity-30" style={{ background: 'radial-gradient(circle, rgba(173, 216, 255, 0.3) 0%, transparent 70%)' }} />
+
+            {/* Robot Image */}
+            <div className="absolute top-14 w-56 h-56 z-30 transform -translate-y-1/2 rotate-6"style={{ right: "-60px" }}>
+              <img
+                className="w-full h-full object-contain"
+                alt="Robot"
+                src="/robot-official.png"
+              />
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 flex flex-col justify-center pr-36 z-20">
+              <h1 className="text-3xl font-bold" style={{ color: '#2D5B7A' }}>
+                Olá, Maria!
+              </h1>
+              <p className="mt-5 text-sm mb-12 font-semibold max-w-xs"style={{ color: '#2D5B7A' }}>
+                Sobre o que gostaria de conversar hoje?
+              </p>
+            </div>
+
+            {/* Input Area */}
+            <form onSubmit={handleSendMessage} className="mt-auto z-20">
+              <div className="bg-white/80 backdrop-blur-sm rounded-full flex items-center p-1 shadow-md max-w-max">
+                <Input
+                  value={chatMessage}
+                  onChange={(e) => setChatMessage(e.target.value)}
+                  placeholder="Digite algo..."
+                  className="flex-1 ml-4 bg-transparent border-none text-sm font-medium text-gray-800 placeholder:text-gray-600 focus-visible:ring-0 focus-visible:outline-none"
+                />
+                  <Button
+              type="submit"
+              size="icon"
+              className="w-8 h-8 bg-white-500 hover:bg-white-600 rounded-full mr-1 flex items-center justify-center"
+            >
+              <img 
+                src="/Sent.png" 
+                alt="Enviar" 
+                className="w-4 h-4"
+              />
+            </Button>
+
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+
+        {/* Calendar/Medication Schedule - Top Right */}
+        <Card className="rounded-[20px] p-2 shadow-lg border-0" style={{ backgroundColor: '#B9D0E9' }}>
+          <CardContent className="p-0 relative h-full">
+            {/* Date Header */}
+            <div className="flex items-center justify-between p-4 pb-2">
+              <h2 className="text-xl font-semibold" style={{ color: '#2D5B7A' }}>
+                {formatDate(currentDate)}
+              </h2>
+              <div className="flex gap-1">
+                <Button
+                  size="icon"
+                  onClick={() => handleDateNavigation("prev")}
+                  className="w-8 h-8 rounded-full mr-4 flex-shrink-0"
+                  style={{ backgroundColor: 'rgba(45, 91, 122, 0.7)' }}
+                >
+                  <ChevronLeftIcon className="w-4 h-4 text-white" />
+                </Button>
+                <Button
+                  size="icon"
+                  onClick={() => handleDateNavigation("next")}
+                  className="w-8 h-8 rounded-full mr-4 flex-shrink-0"
+                  style={{ backgroundColor: 'rgba(45, 91, 122, 0.7)' }}
+                >
+                  <ChevronRightIcon className="w-4 h-4 text-white" />
+                </Button>
+              </div>
+            </div>
+
+            {/* Medication Schedule */}
+            <div className="mx-4 mb-4 bg-white/70 backdrop-blur-md rounded-2xl border-0 shadow-sm p-5">
+              {/* Morning Schedule */}
+              {morningMeds.length > 0 && (
+                <div className="mb-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-sm font-semibold" style={{ color: '#2D5B7A' }}>07:00-12:00</span>
+                    <div className="flex-1 h-px bg-gray-300" />
+                  </div>
+                  <div className="space-y-2">
+                    {morningMeds.map((med) => {
+                      const isTaken = isMedicationTaken(med.id, med.time);
+                      return (
+                        <div key={med.id} className="flex items-center gap-3 text-sm">
+                          <button
+                            onClick={() => toggleMedication(med.id, med.time)}
+                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-300 transform hover:scale-110 ${
+                              isTaken 
+                                ? 'bg-green-500 border-green-500 animate-pulse' 
+                                : 'bg-white border-blue-400 hover:border-blue-600'
+                            }`}
+                          >
+                            {isTaken && (
+                              <CheckIcon className="w-3 h-3 text-white animate-bounce" />
+                            )}
+                          </button>
+                          <span className="font-medium text-gray-800">{med.time}</span>
+                          <span className="text-gray-600">|</span>
+                          <span className="text-gray-800">{med.name}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Afternoon Schedule */}
+              {afternoonMeds.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-sm font-semibold" style={{ color: '#2D5B7A' }}>12:00-18:00</span>
+                    <div className="flex-1 h-px bg-gray-300" />
+                  </div>
+                  <div className="space-y-2">
+                    {afternoonMeds.map((med) => {
+                      const isTaken = isMedicationTaken(med.id, med.time);
+                      return (
+                        <div key={med.id} className="flex items-center gap-3 text-sm">
+                          <button
+                            onClick={() => toggleMedication(med.id, med.time)}
+                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-300 transform hover:scale-110 ${
+                              isTaken 
+                                ? 'bg-green-500 border-green-500 animate-pulse' 
+                                : 'bg-white border-blue-400 hover:border-blue-600'
+                            }`}
+                          >
+                            {isTaken && (
+                              <CheckIcon className="w-3 h-3 text-white animate-bounce" />
+                            )}
+                          </button>
+                          <span className="font-medium text-gray-800">{med.time}</span>
+                          <span className="text-gray-600">|</span>
+                          <span className="text-gray-800">{med.name}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* No medications message */}
+              {morningMeds.length === 0 && afternoonMeds.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  <PillIcon className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">Nenhum medicamento agendado para hoje</p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Games Section - Bottom Left */}
+        <Card className="rounded-[20px] border-0 shadow-lg" style={{ backgroundColor: '#B9D0E9' }}>
+          <CardContent className="p-0 relative h-full flex flex-col">
+          <h2 className="text-3xl font-semibold text-center py-6" style={{ color: '#2D5B7A' }}>
+            Jogos
+          </h2>
+
+            
+            {/* Games Slider */}
+            <div className="flex-1 flex items-center justify-center px-4">
+              <Button
+                size="icon"
+                onClick={() => handleGameSlide("prev")}
+                className="w-8 h-8 rounded-full mr-4 flex-shrink-0"
+                style={{ backgroundColor: 'rgba(45, 91, 122, 0.7)' }}
+                disabled={currentGameSlide === 0}
+              >
+                <ChevronLeftIcon className="w-4 h-4 text-white" />
+              </Button>
+
+              <div className="grid grid-cols-4 gap-3 flex-1 max-w-xs">
+                {currentGames.map((game) => (
+                  <div
+                    key={game.id}
+                    className="bg-white/60 rounded-xl p-3 flex flex-col items-center justify-center cursor-pointer hover:scale-105 transition-transform duration-200 shadow-sm"
+                  >
+                    <span className="text-2xl mb-1">{game.icon}</span>
+                    <span className="text-xs text-center text-gray-700 leading-tight">
+                      {game.name}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              <Button
+                size="icon"
+                onClick={() => handleGameSlide("next")}
+                className="w-8 h-8 rounded-full ml-4 flex-shrink-0"
+                style={{ backgroundColor: 'rgba(45, 91, 122, 0.7)' }}
+                disabled={currentGameSlide >= Math.ceil(games.length / 4) - 1}
+              >
+                <ChevronRightIcon className="w-4 h-4 text-white" />
+              </Button>
+            </div>
+
+            {/* Slide Indicators */}
+            <div className="flex justify-center gap-1 pb-4">
+              {Array.from({ length: Math.ceil(games.length / 4) }).map((_, index) => (
+                <div
+                  key={index}
+                  className={`w-2 h-2 rounded-full transition-colors ${
+                    index === currentGameSlide ? 'bg-[#548bc5]' : 'bg-blue-300'
+                  }`}
+                />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* News/Additional Content - Bottom Right */}
+        <Card className="rounded-[20px] border-0 shadow-lg" style={{ backgroundColor: '#B9D0E9' }}>
+          <CardContent className="p-4 space-y-3 h-full flex flex-col">
+            {/* Header */}
+            <div className="bg-white rounded-xl p-4 text-center">
+              <h3 className="text-lg font-semibold text-gray-800">notícias</h3>
+            </div>
+
+            {/* Content Sections */}
+            <div className="flex-1 space-y-3">
+              <div className="bg-white/90 rounded-xl p-4 flex items-center justify-center min-h-[80px]">
+                <div className="text-center">
+                  <HeadphonesIcon className="w-8 h-8 text-blue-600 mx-auto mb-1" />
+                  <p className="text-sm font-medium text-gray-800">Suporte 24h</p>
+                </div>
+              </div>
+              <div className="bg-white/90 rounded-xl p-4 flex items-center justify-center min-h-[80px]">
+                <div className="text-center">
+                  <LightbulbIcon className="w-8 h-8 text-yellow-600 mx-auto mb-1" />
+                  <p className="text-sm font-medium text-gray-800">Dicas Diárias</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </main>
+  );
+};
