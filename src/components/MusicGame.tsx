@@ -1,8 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { ArrowLeft, Music, Play, Pause } from 'lucide-react';
-
-interface MusicGameProps {
-  onBack: () => void;
+import { ArrowLeft, Music, Play, Pause, Save, CreditCard as Edit, Volume2, Download } from 'lucide-react' onBack: () => void;
   onAchievement: (gameType: string, type: 'moves' | 'time' | 'completion', value: number, metadata?: any) => void;
 }
 

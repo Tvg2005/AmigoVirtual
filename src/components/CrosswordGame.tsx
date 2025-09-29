@@ -1,104 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, RotateCcw, Trophy, Lightbulb, Check } from 'lucide-react';
+import { CrosswordGenerator, CrosswordClue, CrosswordCell } from '../utils/crosswordGenerator';
 
 interface CrosswordGameProps {
   onBack: () => void;
   onAchievement: (gameType: string, type: 'moves' | 'time' | 'completion', value: number, metadata?: any) => void;
 }
 
-interface Clue {
-  number: number;
-  clue: string;
-  answer: string;
-  direction: 'across' | 'down';
-  startRow: number; 
-  startCol: number;
-}
-
-interface Cell {
-  letter: string;
-  number?: number;
-  isBlack: boolean;
-  userInput: string;
-}
-
 const CrosswordGame: React.FC<CrosswordGameProps> = ({ onBack, onAchievement }) => {
-  const [grid, setGrid] = useState<Cell[][]>([]);
+  const [grid, setGrid] = useState<CrosswordCell[][]>([]);
+  const [clues, setClues] = useState<CrosswordClue[]>([]);
   const [selectedCell, setSelectedCell] = useState<{row: number, col: number} | null>(null);
   const [selectedDirection, setSelectedDirection] = useState<'across' | 'down'>('across');
   const [gameWon, setGameWon] = useState(false);
   const [showHints, setShowHints] = useState(false);
   const [completedWords, setCompletedWords] = useState<number[]>([]);
   const [usedHints, setUsedHints] = useState(false);
-
-  const clues: Clue[] = [
-    {
-      number: 1,
-      clue: "Cor do céu em dia claro",
-      answer: "AZUL",
-      direction: 'across',
-      startRow: 1,
-      startCol: 1
-    },
-    {
-      number: 2,
-      clue: "Animal doméstico que faz 'miau'",
-      answer: "GATO",
-      direction: 'down',
-      startRow: 0,
-      startCol: 4
-    },
-    {
-      number: 3,
-      clue: "Astro que ilumina o dia",
-      answer: "SOL",
-      direction: 'across',
-      startRow: 3,
-      startCol: 2
-    },
-    {
-      number: 4,
-      clue: "Fruta amarela alongada",
-      answer: "BANANA",
-      direction: 'down',
-      startRow: 2,
-      startCol: 1
-    },
-    {
-      number: 5,
-      clue: "Flor símbolo do amor",
-      answer: "ROSA",
-      direction: 'across',
-      startRow: 5,
-      startCol: 1
-    },
-    {
-      number: 6,
-      clue: "Bebida quente feita com grãos",
-      answer: "CAFE",
-      direction: 'down',
-      startRow: 4,
-      startCol: 3
-    },
-    {
-      number: 7,
-      clue: "Meio de transporte aquático",
-      answer: "BARCO",
-      direction: 'across',
-      startRow: 7,
-      startCol: 1
-    },
-    {
-      number: 8,
-      clue: "Estação do ano mais quente",
-      answer: "VERAO",
-      direction: 'down',
-      startRow: 6,
-      startCol: 4
-    }
-  ];
-
-  const gridSize = 10;
+  const [gridSize, setGridSize] = useState(15);
 
   useEffect(() => {
     initializeGrid();
@@ -109,36 +27,16 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ onBack, onAchievement }) 
   }, [grid]);
 
   const initializeGrid = () => {
-    const newGrid: Cell[][] = Array(gridSize).fill(null).map(() =>
-      Array(gridSize).fill(null).map(() => ({
-        letter: '',
-        isBlack: true,
-        userInput: ''
-      }))
-    );
-
-    // Place words in grid
-    clues.forEach(clue => {
-      const { startRow, startCol, answer, direction, number } = clue;
-      
-      for (let i = 0; i < answer.length; i++) {
-        const row = direction === 'across' ? startRow : startRow + i;
-        const col = direction === 'across' ? startCol + i : startCol;
-        
-        if (row < gridSize && col < gridSize) {
-          newGrid[row][col] = {
-            letter: answer[i],
-            number: i === 0 ? number : newGrid[row][col].number,
-            isBlack: false,
-            userInput: ''
-          };
-        }
-      }
-    });
-
+    const generator = new CrosswordGenerator();
+    const { grid: newGrid, clues: newClues } = generator.generateCrossword();
+    
     setGrid(newGrid);
+    setClues(newClues);
+    setGridSize(newGrid.length);
     setGameWon(false);
     setCompletedWords([]);
+    setUsedHints(false);
+    setSelectedCell(null);
   };
 
   const checkCompletedWords = () => {
@@ -284,10 +182,10 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ onBack, onAchievement }) 
     const isSelected = selectedCell?.row === row && selectedCell?.col === col;
     
     if (cell.isBlack) {
-      return "w-8 h-8 bg-gray-800 border border-gray-600";
+      return "bg-gray-800 border border-gray-600 flex items-center justify-center relative";
     }
     
-    let className = "w-8 h-8 border border-gray-400 flex items-center justify-center text-sm font-bold cursor-pointer relative ";
+    let className = "border border-gray-400 flex items-center justify-center font-bold cursor-pointer relative ";
     
     if (isSelected) {
       className += "bg-blue-200 border-blue-500 ";
@@ -388,16 +286,31 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ onBack, onAchievement }) 
         {/* Grid */}
         <div className="bg-white rounded-xl p-6 shadow-lg border border-blue-100">
           <div className="flex justify-center mb-4">
-            <div className="grid grid-cols-10 gap-0 border-2 border-gray-600">
+            <div 
+              className="grid gap-0 border-2 border-gray-600"
+              style={{ 
+                gridTemplateColumns: `repeat(${gridSize}, minmax(0, 1fr))`,
+                width: 'min(600px, 90vw)',
+                height: 'min(600px, 90vw)'
+              }}
+            >
               {grid.map((row, rowIndex) =>
                 row.map((cell, colIndex) => (
                   <div
                     key={`${rowIndex}-${colIndex}`}
                     className={getCellClass(rowIndex, colIndex)}
+                    style={{
+                      width: `${Math.min(600, window.innerWidth * 0.9) / gridSize}px`,
+                      height: `${Math.min(600, window.innerWidth * 0.9) / gridSize}px`,
+                      fontSize: `${Math.max(8, Math.min(600, window.innerWidth * 0.9) / gridSize / 3)}px`
+                    }}
                     onClick={() => handleCellClick(rowIndex, colIndex)}
                   >
                     {cell.number && (
-                      <span className="absolute top-0 left-0 text-xs text-blue-600 font-bold">
+                      <span 
+                        className="absolute top-0 left-0 text-blue-600 font-bold"
+                        style={{ fontSize: `${Math.max(6, Math.min(600, window.innerWidth * 0.9) / gridSize / 4)}px` }}
+                      >
                         {cell.number}
                       </span>
                     )}

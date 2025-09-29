@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, RotateCcw, Trophy, Eye, EyeOff } from 'lucide-react';
+import { getRandomPuzzle, SudokuPuzzle } from '../data/sudokuPuzzles';
 
 interface SudokuGameProps {
   onBack: () => void;
@@ -9,47 +10,31 @@ interface SudokuGameProps {
 const SudokuGame: React.FC<SudokuGameProps> = ({ onBack, onAchievement }) => {
   const [grid, setGrid] = useState<number[][]>(Array(9).fill(null).map(() => Array(9).fill(0)));
   const [initialGrid, setInitialGrid] = useState<number[][]>(Array(9).fill(null).map(() => Array(9).fill(0)));
+  const [solution, setSolution] = useState<number[][]>(Array(9).fill(null).map(() => Array(9).fill(0)));
   const [selectedCell, setSelectedCell] = useState<{row: number, col: number} | null>(null);
   const [showHints, setShowHints] = useState(true);
   const [gameWon, setGameWon] = useState(false);
   const [mistakes, setMistakes] = useState(0);
-
-  // Easy Sudoku puzzle
-  const easyPuzzle = [
-    [5, 3, 0, 0, 7, 0, 0, 0, 0],
-    [6, 0, 0, 1, 9, 5, 0, 0, 0],
-    [0, 9, 8, 0, 0, 0, 0, 6, 0],
-    [8, 0, 0, 0, 6, 0, 0, 0, 3],
-    [4, 0, 0, 8, 0, 3, 0, 0, 1],
-    [7, 0, 0, 0, 2, 0, 0, 0, 6],
-    [0, 6, 0, 0, 0, 0, 2, 8, 0],
-    [0, 0, 0, 4, 1, 9, 0, 0, 5],
-    [0, 0, 0, 0, 8, 0, 0, 7, 9]
-  ];
-
-  const solution = [
-    [5, 3, 4, 6, 7, 8, 9, 1, 2],
-    [6, 7, 2, 1, 9, 5, 3, 4, 8],
-    [1, 9, 8, 3, 4, 2, 5, 6, 7],
-    [8, 5, 9, 7, 6, 1, 4, 2, 3],
-    [4, 2, 6, 8, 5, 3, 7, 9, 1],
-    [7, 1, 3, 9, 2, 4, 8, 5, 6],
-    [9, 6, 1, 5, 3, 7, 2, 8, 4],
-    [2, 8, 7, 4, 1, 9, 6, 3, 5],
-    [3, 4, 5, 2, 8, 6, 1, 7, 9]
-  ];
+  const [hintsUsed, setHintsUsed] = useState(0);
+  const [maxHints] = useState(3);
+  const [currentPuzzle, setCurrentPuzzle] = useState<SudokuPuzzle | null>(null);
 
   useEffect(() => {
     initializeGame();
   }, []);
 
   const initializeGame = () => {
-    const newGrid = easyPuzzle.map(row => [...row]);
+    const puzzle = getRandomPuzzle('easy');
+    setCurrentPuzzle(puzzle);
+    
+    const newGrid = puzzle.puzzle.map(row => [...row]);
     setGrid(newGrid);
-    setInitialGrid(easyPuzzle.map(row => [...row]));
+    setInitialGrid(puzzle.puzzle.map(row => [...row]));
+    setSolution(puzzle.solution.map(row => [...row]));
     setSelectedCell(null);
     setGameWon(false);
     setMistakes(0);
+    setHintsUsed(0);
   };
 
   const isValid = (grid: number[][], row: number, col: number, num: number): boolean => {
@@ -101,12 +86,15 @@ const SudokuGame: React.FC<SudokuGameProps> = ({ onBack, onAchievement }) => {
         
         // Check if game is won
         if (newGrid.every((row, rowIndex) => 
-          row.every((cell, colIndex) => cell === solution[rowIndex][colIndex])
+          row.every((cell, colIndex) => cell === solution[rowIndex][colIndex] && cell !== 0)
         )) {
           setGameWon(true);
           // Check achievements
           onAchievement('sudoku', 'completion', 1);
           onAchievement('sudoku', 'moves', mistakes);
+          if (hintsUsed === 0) {
+            onAchievement('sudoku', 'completion', 1, { noHints: true });
+          }
         }
       } else if (num !== 0) {
         setMistakes(mistakes + 1);
@@ -124,6 +112,27 @@ const SudokuGame: React.FC<SudokuGameProps> = ({ onBack, onAchievement }) => {
       }
     }
     return possible;
+  };
+
+  const useHint = () => {
+    if (hintsUsed >= maxHints || !selectedCell) return;
+    
+    const { row, col } = selectedCell;
+    if (initialGrid[row][col] !== 0) return; // Can't hint on pre-filled cells
+    
+    const newGrid = [...grid];
+    newGrid[row][col] = solution[row][col];
+    setGrid(newGrid);
+    setHintsUsed(hintsUsed + 1);
+    
+    // Check if game is won after hint
+    if (newGrid.every((row, rowIndex) => 
+      row.every((cell, colIndex) => cell === solution[rowIndex][colIndex] && cell !== 0)
+    )) {
+      setGameWon(true);
+      onAchievement('sudoku', 'completion', 1);
+      onAchievement('sudoku', 'moves', mistakes);
+    }
   };
 
   const getCellClass = (row: number, col: number) => {
@@ -165,10 +174,20 @@ const SudokuGame: React.FC<SudokuGameProps> = ({ onBack, onAchievement }) => {
 
         <div className="text-center">
           <h2 className="text-2xl font-bold text-blue-800">Sudoku</h2>
-          <p className="text-blue-600">Erros: {mistakes}</p>
+          <p className="text-blue-600">
+            Erros: {mistakes} | Dicas: {hintsUsed}/{maxHints}
+          </p>
         </div>
 
         <div className="flex items-center space-x-2">
+          <button
+            onClick={useHint}
+            disabled={hintsUsed >= maxHints || !selectedCell || (selectedCell && initialGrid[selectedCell.row][selectedCell.col] !== 0)}
+            className="flex items-center space-x-2 bg-purple-500 hover:bg-purple-600 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg transition-colors"
+          >
+            <span>💡</span>
+            <span>Dica ({maxHints - hintsUsed})</span>
+          </button>
           <button
             onClick={() => setShowHints(!showHints)}
             className="flex items-center space-x-2 bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg transition-colors"
@@ -240,6 +259,7 @@ const SudokuGame: React.FC<SudokuGameProps> = ({ onBack, onAchievement }) => {
         <ul className="text-blue-700 space-y-2 text-lg">
           <li>• Clique em uma célula vazia para selecioná-la</li>
           <li>• Use os botões numéricos para inserir números</li>
+          <li>• Use o botão "Dica" para revelar o número correto na célula selecionada</li>
           <li>• Cada linha, coluna e quadrado 3x3 deve conter os números de 1 a 9</li>
           <li>• Use as dicas para ver números possíveis na célula selecionada</li>
         </ul>

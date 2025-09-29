@@ -60,11 +60,21 @@ const defaultAchievements: Achievement[] = [
   {
     id: 'sudoku-perfect',
     gameType: 'sudoku',
+    title: 'Mestre Sudoku',
+    description: 'Complete o Sudoku sem usar dicas',
+    target: 1,
+    type: 'completion',
+    icon: '💎',
+    completed: false
+  },
+  {
+    id: 'sudoku-no-mistakes',
+    gameType: 'sudoku',
     title: 'Perfeição',
     description: 'Complete o Sudoku sem erros',
     target: 0,
     type: 'moves',
-    icon: '💎',
+    icon: '🌟',
     completed: false
   },
 
@@ -97,6 +107,36 @@ const defaultAchievements: Achievement[] = [
     target: 20,
     type: 'moves',
     icon: '🧠',
+    completed: false
+  },
+  {
+    id: 'memory-easy-master',
+    gameType: 'memory',
+    title: 'Mestre Fácil',
+    description: 'Complete o modo fácil em menos de 30 segundos',
+    target: 30,
+    type: 'time',
+    icon: '🥉',
+    completed: false
+  },
+  {
+    id: 'memory-medium-master',
+    gameType: 'memory',
+    title: 'Mestre Médio',
+    description: 'Complete o modo médio em menos de 90 segundos',
+    target: 90,
+    type: 'time',
+    icon: '🥈',
+    completed: false
+  },
+  {
+    id: 'memory-hard-master',
+    gameType: 'memory',
+    title: 'Mestre Difícil',
+    description: 'Complete o modo difícil em menos de 180 segundos',
+    target: 180,
+    type: 'time',
+    icon: '🥇',
     completed: false
   },
 
@@ -185,6 +225,16 @@ const defaultAchievements: Achievement[] = [
     icon: '🎼',
     completed: false
   },
+  {
+    id: 'music-first-save',
+    gameType: 'music',
+    title: 'Primeira Composição',
+    description: 'Salve sua primeira música',
+    target: 1,
+    type: 'completion',
+    icon: '💾',
+    completed: false
+  },
 
   // Livro de Colorir
   {
@@ -260,6 +310,14 @@ export const useAchievements = () => {
         if (achievement.id === 'crossword-no-hints' && metadata?.usedHints) {
           shouldComplete = false;
         }
+        
+        if (achievement.id === 'sudoku-perfect' && metadata?.noHints) {
+          shouldComplete = true;
+        }
+        
+        if (achievement.id === 'music-first-save' && metadata?.firstSave) {
+          shouldComplete = true;
+        }
 
         // Jigsaw puzzle specific validation - only complete if correct grid size
         if (achievement.gameType === 'jigsaw' && metadata?.gridSize) {
@@ -270,6 +328,19 @@ export const useAchievements = () => {
             shouldComplete = false;
           }
           if (achievement.id === 'jigsaw-5x5-legend' && metadata.gridSize !== 5) {
+            shouldComplete = false;
+          }
+        }
+
+        // Memory game difficulty-specific achievements
+        if (achievement.gameType === 'memory' && metadata?.difficulty) {
+          if (achievement.id === 'memory-easy-master' && metadata.difficulty !== 'easy') {
+            shouldComplete = false;
+          }
+          if (achievement.id === 'memory-medium-master' && metadata.difficulty !== 'medium') {
+            shouldComplete = false;
+          }
+          if (achievement.id === 'memory-hard-master' && metadata.difficulty !== 'hard') {
             shouldComplete = false;
           }
         }
