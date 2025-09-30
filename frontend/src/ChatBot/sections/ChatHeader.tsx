@@ -8,14 +8,18 @@ import {
 import { Button } from "../components/button";
 import { Input } from "../components/input";
 
-export const ChatHeader = (): JSX.Element => {
+interface ChatHeaderProps {
+  isDarkMode: boolean;
+  onThemeToggle: () => void;
+}
+
+export const ChatHeader = ({ isDarkMode, onThemeToggle }: ChatHeaderProps): JSX.Element => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [isDarkMode, setIsDarkMode] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
 
   // Função para alternar tema
   const handleThemeToggle = () => {
-    setIsDarkMode(!isDarkMode);
+    onThemeToggle();
     
     // Aplicar tema no documento
     if (!isDarkMode) {
@@ -43,12 +47,14 @@ export const ChatHeader = (): JSX.Element => {
   };
 
   return (
-    <header className="fixed top-0 left-80 right-0 h-20 bg-gradient-to-r from-blue-50 to-blue-100 border-b border-blue-200 flex items-center justify-between px-8 z-20">
+    <header className="fixed top-0 left-0 right-0 h-20 bg-gradient-to-r from-blue-50 to-blue-100 border-b border-blue-200 flex items-center justify-between px-8 z-20">
       
       {/* Search Bar */}
-      <form onSubmit={handleSearch} className="relative flex-1 max-w-lg">
-        <div className="relative h-12 bg-white rounded-full border-2 border-[#548bc54f] flex items-center overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200">
-          <Input
+      {/* <form onSubmit={handleSearch} className="relative flex-1 max-w-lg"> */}
+        {/* <div className="relative h-12 bg-white rounded-full border-2 border-[#548bc54f] flex items-center overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200"> */}
+        {/* Tirar essa parte debaixo se quiser deixar o form ativo */}
+        <div className="relative h-12">
+          {/* <Input
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Pesquisa..."
@@ -61,9 +67,9 @@ export const ChatHeader = (): JSX.Element => {
             className="mr-3 h-8 w-8 rounded-full hover:bg-blue-100"
           >
             <SearchIcon className="w-5 h-5 text-600"style={{color: '#548AC5'}} />
-          </Button>
+          </Button> */}
         </div>
-      </form>
+      {/* </form> */}
 
       {/* Right Side Controls */}
       <div className="flex items-center gap-3 ml-8">

@@ -9,7 +9,7 @@ const ChatBotButton: React.FC<ChatBotButtonProps> = ({ onClick }) => {
   return (
     <button
       onClick={onClick}
-      className="fixed bottom-7 right-7 bg-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-blue-700 transition"
+      className="fixed bottom-7 right-7 bg-[#548AC5] text-white p-3 rounded-full shadow-lg hover:bg-[#4271a2] transition"
       aria-label="Abrir chat assistente"
     >
       <MessageCircle size={24} />

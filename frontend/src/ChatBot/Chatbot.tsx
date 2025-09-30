@@ -1,13 +1,21 @@
-// import { ChatArea } from "./sections/ChatArea";
-// import { ChatHeader } from "./sections/ChatHeader";
+import { useState } from "react";
+import { ChatArea } from "./sections/ChatArea";
+import { ChatHeader } from "./sections/ChatHeader";
 
-// const Chatbot = (): JSX.Element => {
-//   return (
-//     <>
-//         <ChatHeader/>
-//         <ChatArea/>
-//     </>
-//   );
-// };
+const ChatbotPage = (): JSX.Element => {
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
-// export default Chatbot;
+  return (
+    <div className="h-screen flex flex-col">
+      <ChatHeader 
+        isDarkMode={isDarkMode} 
+        onThemeToggle={() => setIsDarkMode(!isDarkMode)} 
+      />
+      <div className="flex-1 pt-20">
+        <ChatArea isDark={isDarkMode} />
+      </div>
+    </div>
+  );
+};
+
+export default ChatbotPage;

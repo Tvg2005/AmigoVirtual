@@ -1,13 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { X, Volume2, Bot, Mic, Pause, VolumeX } from "lucide-react";
-import { 
-  SpeechRecognition, 
-  SpeechRecognitionEvent, 
-  SpeechRecognitionErrorEvent 
-} from "../../../../backend/api/SpeechRecognition";
 
 interface ChatbotProps {
-  onClose: () => void;
+  onClose?: () => void;
 }
 
 const Chatbot: React.FC<ChatbotProps> = ({ onClose }) => {
@@ -15,7 +10,7 @@ const Chatbot: React.FC<ChatbotProps> = ({ onClose }) => {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
-  const [recognition, setRecognition] = useState<SpeechRecognition | null>(null);
+  const [recognition, setRecognition] = useState<any>(null);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [selectedVoice, setSelectedVoice] = useState<SpeechSynthesisVoice | null>(null);
   
@@ -76,7 +71,7 @@ const Chatbot: React.FC<ChatbotProps> = ({ onClose }) => {
   //!IMPORTANTE! COMPONENTE REACT QUE UTILIZA A API DE RECONHECIMENTO DE FALA!!
   useEffect(() => {
     if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
-      const SpeechRecognitionConstructor = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const SpeechRecognitionConstructor = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
       const recognitionInstance = new SpeechRecognitionConstructor();
       
       recognitionInstance.continuous = true;
@@ -86,7 +81,7 @@ const Chatbot: React.FC<ChatbotProps> = ({ onClose }) => {
       // Rastrear o último índice processado
       let lastProcessedIndex = 0;
       
-      recognitionInstance.onresult = (event: SpeechRecognitionEvent) => {
+      recognitionInstance.onresult = (event: any) => {
         let interimTranscript = '';
         let finalTranscript = '';
         
@@ -135,7 +130,7 @@ const Chatbot: React.FC<ChatbotProps> = ({ onClose }) => {
         }
       };
       
-      recognitionInstance.onerror = (event: SpeechRecognitionErrorEvent) => {
+      recognitionInstance.onerror = (event: any) => {
         console.error('Erro no reconhecimento de voz:', event.error);
         setIsListening(false);
         lastProcessedIndex = 0;
@@ -194,6 +189,20 @@ const Chatbot: React.FC<ChatbotProps> = ({ onClose }) => {
     setIsSpeaking(false);
   };
 
+  // Função para fechar o chat
+  const handleClose = () => {
+    // Para a fala se estiver ativa
+    stopSpeaking();
+    // Para o reconhecimento de voz se estiver ativo
+    if (isListening && recognition) {
+      recognition.stop();
+    }
+    // Chama a função onClose se foi fornecida
+    if (onClose) {
+      onClose();
+    }
+  };
+
   //!IMPORTANTE! TRATAMENTO DE ENVIO E RESPOSTA COM A IA!!
   const sendMessage = async () => {
     if (isListening) toggleListening();
@@ -242,32 +251,40 @@ const Chatbot: React.FC<ChatbotProps> = ({ onClose }) => {
 
   //Frontend
   return (
-    <div className="fixed bottom-20 right-6 w-96 bg-white rounded-lg shadow-xl border border-gray-200">
-      <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-blue-600 text-white rounded-t-lg">
+    <div className="fixed bottom-20 right-6 w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-50">
+      <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-[#548AC5] text-white rounded-t-lg">
         <div className="flex items-center gap-2">
           <Bot size={24} />
-          <h3 className="font-semibold">Assistente virtual</h3>
+          <h3 className="font-semibold">Eliza</h3>
         </div>
-        <div className="flex gap-2">
-          <button onClick={onClose} className="p-1 hover:bg-blue-700 rounded" aria-label="Fechar chat">
-            <X size={20} />
-          </button>
-        </div>
+        <button 
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Botão X clicado!');
+            handleClose();
+          }}
+          className="p-2 hover:bg-[#4271a2] rounded transition-colors duration-200 cursor-pointer" 
+          aria-label="Fechar chat"
+          type="button"
+        >
+          <X size={20} />
+        </button>
       </div>
 
       <div className="h-96 p-4 overflow-y-auto">
         {messages.map((msg, index) => (
-          <div key={index} className={`p-3 rounded-lg mb-4 max-w-[80%] ${msg.role === "user" ? "bg-blue-500 text-white ml-auto" : "bg-gray-200"}`}>
+          <div key={index} className={`p-3 rounded-lg mb-4 max-w-[80%] ${msg.role === "user" ? "bg-[#548AC5] text-white ml-auto" : "bg-gray-200"}`}>
             <div className="flex justify-between items-start">
               <div className="flex-1">{msg.text}</div>
               {msg.role === "bot" && (
                 <button 
-                  className="ml-2 text-gray-600 p-1 hover:bg-gray-300 rounded-full flex-shrink-0" 
+                  className="ml-2 text-gray-600 p-1 hover:bg-gray-300 rounded-full flex-shrink-0 transition-colors duration-200" 
                   onClick={() => isSpeaking ? stopSpeaking() : speakText(msg.text)}
-                  aria-label={isSpeaking ? "Parar leitura" : "Ler mensagem"}>
-                    
-                  {isSpeaking ? <VolumeX size={20} color="blue" /> : <Volume2 size={20} color="black" />}
-                
+                  aria-label={isSpeaking ? "Parar leitura" : "Ler mensagem"}
+                  type="button"
+                >
+                  {isSpeaking ? <VolumeX size={20} color="#548AC5" /> : <Volume2 size={20} color="black" />}
                 </button>
               )}
             </div>
@@ -287,7 +304,7 @@ const Chatbot: React.FC<ChatbotProps> = ({ onClose }) => {
       <div className="p-4 border-t border-gray-200 flex">
         <textarea
           ref={textareaRef}
-          className="flex-1 p-2 border border-gray-300 rounded-lg resize-none overflow-hidden min-h-[40px] max-h-32 placeholder:text-sm"
+          className="flex-1 p-2 border border-gray-300 rounded-lg resize-none overflow-hidden min-h-[40px] max-h-32 placeholder:text-sm focus:outline-none focus:ring-2 focus:ring-[#548AC5]"
           placeholder="Digite sua mensagem..."
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -298,15 +315,17 @@ const Chatbot: React.FC<ChatbotProps> = ({ onClose }) => {
         />
         <button 
           onClick={toggleListening} 
-          className={`ml-2 p-2.5 ${isListening ? 'bg-red-500' : 'bg-blue-600'} text-white rounded-lg self-end`}
+          className={`ml-2 p-2.5 ${isListening ? 'bg-red-500 hover:bg-red-600' : 'bg-[#548AC5] hover:bg-[#4271a2]'} text-white rounded-lg self-end transition-colors duration-200`}
           aria-label={isListening ? "Parar reconhecimento de voz" : "Iniciar reconhecimento de voz"}
+          type="button"
         >
           {isListening ? <Pause size={20} /> : <Mic size={20} />}
         </button>
         <button 
           onClick={sendMessage} 
-          className="ml-2 p-2 bg-blue-600 text-white rounded-lg self-end" 
+          className="ml-2 p-2 bg-[#548AC5] hover:bg-[#4271a2] text-white rounded-lg self-end transition-colors duration-200" 
           disabled={loading}
+          type="button"
         >
           {loading ? "..." : "Enviar"}
         </button>

@@ -10,10 +10,10 @@ import {
 
 export const DashboardNavigation = (): JSX.Element => {
   const navigationItems = [
-    { icon: MessageSquareIcon, label: "Eliza", image: "/message-bot.png" },
-    { icon: Gamepad2Icon, label: "Jogos", image: "/game-controller.png" },
-    { icon: PillIcon, label: "Remédios", image: "/hand-with-a-pill.png" },
-    { icon: LightbulbIcon, label: "Notícias", image: "/morning-news.png" },
+    { icon: MessageSquareIcon, label: "Eliza", image: "/message-bot.png", route: "/chatbot" },
+    { icon: Gamepad2Icon, label: "Jogos", image: "/game-controller.png", route: null },
+    { icon: PillIcon, label: "Remédios", image: "/hand-with-a-pill.png", route: "/medication-reminders" },
+    { icon: LightbulbIcon, label: "Notícias", image: "/morning-news.png", route: null },
   ];
 
   return (
@@ -35,10 +35,10 @@ export const DashboardNavigation = (): JSX.Element => {
       {/* Navigation Items */}
       <nav className="flex-1 px-6 space-y-4">
         {navigationItems.map((item) =>
-          item.label === "Remédios" ? (
+          item.route ? (
             <Link
               key={item.label}
-              to="/medication-reminders"
+              to={item.route}
               className="w-full h-14 flex items-center justify-start p-3 hover:bg-white/10 transition-colors duration-200 rounded-xl group"
             >
               <div className="w-12 h-12 flex-shrink-0 flex items-center justify-center">

@@ -7,27 +7,28 @@ import Login from './Login&Register/Login';
 import Register from './Login&Register/Register';
 import DashboardVelho from './Dashboard/DashboardVelho';
 import MedicationReminders from './MedicationReminder/MedicationReminders';
-import Chatbot from './Desktop/components/ChatBot';
+import ChatbotPage from './ChatBot/Chatbot';
+import ChatBot from './Desktop/components/ChatBot';
 import ChatBotButton from './Desktop/components/ChatBotButton';
 
 function App() {
-  const [isChatOpen, setIsChatOpen] = useState<boolean>(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   const toggleChat = () => {
-    setIsChatOpen((prev: boolean) => !prev);
+    setIsChatOpen((prev) => !prev);
   };
 
   return (
     <Router>
       <div className="min-h-screen bg-gray-50">
         <Routes>
-          {/* Chatbot */}
-          <Route path="/chatbot" element={<Chatbot onClose={toggleChat} />} />
+          {/* Página do Chatbot */}
+          <Route path="/chatbot" element={<ChatbotPage />} />
 
           {/* Velho Dashboard */}
           <Route path="/dashboard-velho" element={<DashboardVelho />} />
 
-          {/* Homepage - Now Desktop */}
+          {/* Homepage - Desktop */}
           <Route path="/" element={<Desktop />} />
 
           {/* Login */}
@@ -36,14 +37,16 @@ function App() {
           {/* Registro */}
           <Route path="/register" element={<Register />} />
 
-          {/* Dashboard */}
+          {/* Novo Dashboard com ChatBot */}
           <Route 
             path="/dashboard" 
             element={
               <div className="relative">
                 <DashboardNovo />
                 <ChatBotButton onClick={toggleChat} />
-                {isChatOpen && <Chatbot onClose={toggleChat} />}
+                {isChatOpen && <ChatBot onClose={function (): void {
+                  throw new Error('Function not implemented.');
+                } } />}
               </div>
             } 
           />
