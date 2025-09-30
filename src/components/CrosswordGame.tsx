@@ -17,6 +17,8 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ onBack, onAchievement }) 
   const [completedWords, setCompletedWords] = useState<number[]>([]);
   const [usedHints, setUsedHints] = useState(false);
   const [gridSize, setGridSize] = useState(15);
+  const [hintsRemaining, setHintsRemaining] = useState(3);
+  const [revealedLetters, setRevealedLetters] = useState<{[key: string]: number}>({});
 
   useEffect(() => {
     initializeGrid();
@@ -36,6 +38,8 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ onBack, onAchievement }) 
     setGameWon(false);
     setCompletedWords([]);
     setUsedHints(false);
+    setHintsRemaining(3);
+    setRevealedLetters({});
     setSelectedCell(null);
   };
 
@@ -225,17 +229,47 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ onBack, onAchievement }) 
 
   const showHint = (clueNumber: number) => {
     const clue = clues.find(c => c.number === clueNumber);
-    if (!clue) return;
+    if (!clue || hintsRemaining <= 0) return;
+    
+    // Check if this word is already completed
+    if (completedWords.includes(clueNumber)) return;
     
     setUsedHints(true);
+    setHintsRemaining(hintsRemaining - 1);
     
     const { startRow, startCol, answer, direction } = clue;
     const newGrid = [...grid];
     
-    // Fill in the first letter as a hint
-    const row = startRow;
-    const col = startCol;
-    newGrid[row][col].userInput = answer[0];
+    // Find a random unrevealed letter in this word
+    const wordKey = `${clueNumber}`;
+    const currentRevealed = revealedLetters[wordKey] || 0;
+    
+    if (currentRevealed < answer.length) {
+      // Find all empty positions in this word
+      const emptyPositions: number[] = [];
+      for (let i = 0; i < answer.length; i++) {
+        const row = direction === 'across' ? startRow : startRow + i;
+        const col = direction === 'across' ? startCol + i : startCol;
+        if (row < gridSize && col < gridSize && grid[row] && grid[row][col] && !grid[row][col].userInput) {
+          emptyPositions.push(i);
+        }
+      }
+      
+      if (emptyPositions.length > 0) {
+        // Pick a random empty position
+        const randomIndex = emptyPositions[Math.floor(Math.random() * emptyPositions.length)];
+        const row = direction === 'across' ? startRow : startRow + randomIndex;
+        const col = direction === 'across' ? startCol + randomIndex : startCol;
+        
+        newGrid[row][col].userInput = answer[randomIndex];
+        
+        // Update revealed letters count
+        setRevealedLetters({
+          ...revealedLetters,
+          [wordKey]: currentRevealed + 1
+        });
+      }
+    }
     
     setGrid(newGrid);
   };
@@ -253,7 +287,9 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ onBack, onAchievement }) 
 
         <div className="text-center">
           <h2 className="text-2xl font-bold text-blue-800">Palavras-Cruzadas</h2>
-          <p className="text-blue-600">Palavras completas: {completedWords.length}/{clues.length}</p>
+          <p className="text-blue-600">
+            Palavras completas: {completedWords.length}/{clues.length} | Dicas restantes: {hintsRemaining}
+          </p>
         </div>
 
         <div className="flex items-center space-x-2">
@@ -349,9 +385,10 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ onBack, onAchievement }) 
                     {showHints && (
                       <button
                         onClick={() => showHint(clue.number)}
-                        className="text-xs bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-2 py-1 rounded transition-colors"
+                        disabled={hintsRemaining <= 0 || completedWords.includes(clue.number)}
+                        className="text-xs bg-yellow-100 hover:bg-yellow-200 disabled:bg-gray-100 disabled:text-gray-400 text-yellow-800 px-2 py-1 rounded transition-colors"
                       >
-                        Dica
+                        {hintsRemaining > 0 && !completedWords.includes(clue.number) ? 'Dica' : 'N/A'}
                       </button>
                     )}
                   </div>
@@ -374,9 +411,10 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ onBack, onAchievement }) 
                     {showHints && (
                       <button
                         onClick={() => showHint(clue.number)}
-                        className="text-xs bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-2 py-1 rounded transition-colors"
+                        disabled={hintsRemaining <= 0 || completedWords.includes(clue.number)}
+                        className="text-xs bg-yellow-100 hover:bg-yellow-200 disabled:bg-gray-100 disabled:text-gray-400 text-yellow-800 px-2 py-1 rounded transition-colors"
                       >
-                        Dica
+                        {hintsRemaining > 0 && !completedWords.includes(clue.number) ? 'Dica' : 'N/A'}
                       </button>
                     )}
                   </div>
@@ -394,7 +432,8 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ onBack, onAchievement }) 
           <li>• Digite letras para preencher as palavras</li>
           <li>• Use as setas do teclado para navegar</li>
           <li>• Clique na mesma célula para alternar entre horizontal e vertical</li>
-          <li>• Use as dicas para obter a primeira letra de cada palavra</li>
+          <li>• Use as dicas (máximo 3 por jogo) para revelar uma letra aleatória</li>
+          <li>• Cada dica revela uma letra de uma palavra não completada</li>
         </ul>
       </div>
     </div>
