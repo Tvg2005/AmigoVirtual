@@ -13,12 +13,10 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ onBack, onAchievement }) 
   const [selectedCell, setSelectedCell] = useState<{row: number, col: number} | null>(null);
   const [selectedDirection, setSelectedDirection] = useState<'across' | 'down'>('across');
   const [gameWon, setGameWon] = useState(false);
-  const [showHints, setShowHints] = useState(false);
   const [completedWords, setCompletedWords] = useState<number[]>([]);
   const [usedHints, setUsedHints] = useState(false);
   const [gridSize, setGridSize] = useState(15);
   const [hintsRemaining, setHintsRemaining] = useState(3);
-  const [revealedLetters, setRevealedLetters] = useState<{[key: string]: number}>({});
 
   useEffect(() => {
     initializeGrid();
@@ -39,17 +37,16 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ onBack, onAchievement }) 
     setCompletedWords([]);
     setUsedHints(false);
     setHintsRemaining(3);
-    setRevealedLetters({});
     setSelectedCell(null);
   };
 
   const checkCompletedWords = () => {
-    // Don't check if grid is not initialized yet
     if (!grid.length || !grid[0] || !grid[0].length) {
       return;
     }
     
     const completed: number[] = [];
+    const newGrid = [...grid];
     
     clues.forEach(clue => {
       const { startRow, startCol, answer, direction, number } = clue;
@@ -67,26 +64,39 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ onBack, onAchievement }) 
         }
       }
       
-      if (isComplete) {
+      if (isComplete && !completedWords.includes(number)) {
         completed.push(number);
+        
+        // Lock the cells of completed words
+        for (let i = 0; i < answer.length; i++) {
+          const row = direction === 'across' ? startRow : startRow + i;
+          const col = direction === 'across' ? startCol + i : startCol;
+          
+          if (row < gridSize && col < gridSize && newGrid[row] && newGrid[row][col]) {
+            newGrid[row][col].isLocked = true;
+          }
+        }
       }
     });
     
-    setCompletedWords(completed);
+    if (completed.length > 0) {
+      setGrid(newGrid);
+    }
+    
+    const allCompleted = [...completedWords, ...completed];
+    setCompletedWords(allCompleted);
     
     // Check if all words are completed
-    if (completed.length === clues.length) {
+    if (allCompleted.length === clues.length) {
       setGameWon(true);
-      // Check achievements
       onAchievement('crossword', 'completion', 1, { usedHints });
     }
   };
 
   const handleCellClick = (row: number, col: number) => {
-    if (grid[row][col].isBlack) return;
+    if (grid[row][col].isBlack || grid[row][col].isLocked) return;
     
     if (selectedCell?.row === row && selectedCell?.col === col) {
-      // Toggle direction if clicking the same cell
       setSelectedDirection(selectedDirection === 'across' ? 'down' : 'across');
     } else {
       setSelectedCell({ row, col });
@@ -98,19 +108,19 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ onBack, onAchievement }) 
     
     const { row, col } = selectedCell;
     
+    if (grid[row][col].isLocked) return;
+    
     if (e.key.match(/[a-zA-Z]/)) {
       const newGrid = [...grid];
       newGrid[row][col].userInput = e.key.toUpperCase();
       setGrid(newGrid);
       
-      // Move to next cell
       moveToNextCell();
     } else if (e.key === 'Backspace') {
       const newGrid = [...grid];
       newGrid[row][col].userInput = '';
       setGrid(newGrid);
       
-      // Move to previous cell
       moveToPreviousCell();
     } else if (e.key === 'ArrowRight' || e.key === 'ArrowLeft' || 
                e.key === 'ArrowUp' || e.key === 'ArrowDown') {
@@ -131,7 +141,8 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ onBack, onAchievement }) 
       nextRow = row + 1;
     }
     
-    if (nextRow < gridSize && nextCol < gridSize && !grid[nextRow][nextCol].isBlack) {
+    if (nextRow < gridSize && nextCol < gridSize && 
+        !grid[nextRow][nextCol].isBlack && !grid[nextRow][nextCol].isLocked) {
       setSelectedCell({ row: nextRow, col: nextCol });
     }
   };
@@ -149,7 +160,8 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ onBack, onAchievement }) 
       prevRow = row - 1;
     }
     
-    if (prevRow >= 0 && prevCol >= 0 && !grid[prevRow][prevCol].isBlack) {
+    if (prevRow >= 0 && prevCol >= 0 && 
+        !grid[prevRow][prevCol].isBlack && !grid[prevRow][prevCol].isLocked) {
       setSelectedCell({ row: prevRow, col: prevCol });
     }
   };
@@ -176,7 +188,7 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ onBack, onAchievement }) 
         break;
     }
     
-    if (!grid[newRow][newCol].isBlack) {
+    if (!grid[newRow][newCol].isBlack && !grid[newRow][newCol].isLocked) {
       setSelectedCell({ row: newRow, col: newCol });
     }
   };
@@ -189,50 +201,22 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ onBack, onAchievement }) 
       return "bg-gray-800 border border-gray-600 flex items-center justify-center relative";
     }
     
-    let className = "border border-gray-400 flex items-center justify-center font-bold cursor-pointer relative ";
+    let className = "border border-gray-400 flex items-center justify-center font-bold relative ";
     
-    if (isSelected) {
-      className += "bg-blue-200 border-blue-500 ";
+    if (cell.isLocked) {
+      className += "bg-green-100 border-green-400 cursor-not-allowed ";
+    } else if (isSelected) {
+      className += "bg-blue-200 border-blue-500 cursor-pointer ";
     } else {
-      className += "bg-white hover:bg-blue-50 ";
-    }
-    
-    // Highlight completed words
-    const wordNumbers = getWordNumbersForCell(row, col);
-    const hasCompletedWord = wordNumbers.some(num => completedWords.includes(num));
-    if (hasCompletedWord) {
-      className += "bg-green-100 ";
+      className += "bg-white hover:bg-blue-50 cursor-pointer ";
     }
     
     return className;
   };
 
-  const getWordNumbersForCell = (row: number, col: number): number[] => {
-    const numbers: number[] = [];
-    
-    clues.forEach(clue => {
-      const { startRow, startCol, answer, direction, number } = clue;
-      
-      for (let i = 0; i < answer.length; i++) {
-        const wordRow = direction === 'across' ? startRow : startRow + i;
-        const wordCol = direction === 'across' ? startCol + i : startCol;
-        
-        if (wordRow === row && wordCol === col) {
-          numbers.push(number);
-          break;
-        }
-      }
-    });
-    
-    return numbers;
-  };
-
   const showHint = (clueNumber: number) => {
     const clue = clues.find(c => c.number === clueNumber);
-    if (!clue || hintsRemaining <= 0) return;
-    
-    // Check if this word is already completed
-    if (completedWords.includes(clueNumber)) return;
+    if (!clue || hintsRemaining <= 0 || completedWords.includes(clueNumber)) return;
     
     setUsedHints(true);
     setHintsRemaining(hintsRemaining - 1);
@@ -240,34 +224,15 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ onBack, onAchievement }) 
     const { startRow, startCol, answer, direction } = clue;
     const newGrid = [...grid];
     
-    // Find a random unrevealed letter in this word
-    const wordKey = `${clueNumber}`;
-    const currentRevealed = revealedLetters[wordKey] || 0;
-    
-    if (currentRevealed < answer.length) {
-      // Find all empty positions in this word
-      const emptyPositions: number[] = [];
-      for (let i = 0; i < answer.length; i++) {
-        const row = direction === 'across' ? startRow : startRow + i;
-        const col = direction === 'across' ? startCol + i : startCol;
-        if (row < gridSize && col < gridSize && grid[row] && grid[row][col] && !grid[row][col].userInput) {
-          emptyPositions.push(i);
-        }
-      }
+    // Find the first empty cell in this word
+    for (let i = 0; i < answer.length; i++) {
+      const row = direction === 'across' ? startRow : startRow + i;
+      const col = direction === 'across' ? startCol + i : startCol;
       
-      if (emptyPositions.length > 0) {
-        // Pick a random empty position
-        const randomIndex = emptyPositions[Math.floor(Math.random() * emptyPositions.length)];
-        const row = direction === 'across' ? startRow : startRow + randomIndex;
-        const col = direction === 'across' ? startCol + randomIndex : startCol;
-        
-        newGrid[row][col].userInput = answer[randomIndex];
-        
-        // Update revealed letters count
-        setRevealedLetters({
-          ...revealedLetters,
-          [wordKey]: currentRevealed + 1
-        });
+      if (row < gridSize && col < gridSize && grid[row] && grid[row][col] && 
+          !grid[row][col].userInput && !grid[row][col].isLocked) {
+        newGrid[row][col].userInput = answer[i];
+        break;
       }
     }
     
@@ -292,22 +257,13 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ onBack, onAchievement }) 
           </p>
         </div>
 
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={() => setShowHints(!showHints)}
-            className="flex items-center space-x-2 bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg transition-colors"
-          >
-            <Lightbulb className="w-4 h-4" />
-            <span>{showHints ? 'Ocultar' : 'Mostrar'} Dicas</span>
-          </button>
-          <button
-            onClick={initializeGrid}
-            className="flex items-center space-x-2 bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg transition-colors text-lg"
-          >
-            <RotateCcw className="w-5 h-5" />
-            <span>Novo Jogo</span>
-          </button>
-        </div>
+        <button
+          onClick={initializeGrid}
+          className="flex items-center space-x-2 bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg transition-colors text-lg"
+        >
+          <RotateCcw className="w-5 h-5" />
+          <span>Novo Jogo</span>
+        </button>
       </div>
 
       {gameWon && (
@@ -319,7 +275,6 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ onBack, onAchievement }) 
       )}
 
       <div className="grid lg:grid-cols-2 gap-6">
-        {/* Grid */}
         <div className="bg-white rounded-xl p-6 shadow-lg border border-blue-100">
           <div className="flex justify-center mb-4">
             <div 
@@ -351,7 +306,7 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ onBack, onAchievement }) 
                       </span>
                     )}
                     <span className="text-center">
-                      {cell.userInput || (showHints ? cell.letter : '')}
+                      {cell.userInput}
                     </span>
                   </div>
                 ))
@@ -365,7 +320,6 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ onBack, onAchievement }) 
           </div>
         </div>
 
-        {/* Clues */}
         <div className="bg-white rounded-xl p-6 shadow-lg border border-blue-100">
           <h3 className="text-xl font-bold text-blue-800 mb-4">Dicas</h3>
           
@@ -382,15 +336,14 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ onBack, onAchievement }) 
                       <span className="font-medium text-blue-800">{clue.number}.</span>
                       <span className="text-blue-700">{clue.clue}</span>
                     </div>
-                    {showHints && (
-                      <button
-                        onClick={() => showHint(clue.number)}
-                        disabled={hintsRemaining <= 0 || completedWords.includes(clue.number)}
-                        className="text-xs bg-yellow-100 hover:bg-yellow-200 disabled:bg-gray-100 disabled:text-gray-400 text-yellow-800 px-2 py-1 rounded transition-colors"
-                      >
-                        {hintsRemaining > 0 && !completedWords.includes(clue.number) ? 'Dica' : 'N/A'}
-                      </button>
-                    )}
+                    <button
+                      onClick={() => showHint(clue.number)}
+                      disabled={hintsRemaining <= 0 || completedWords.includes(clue.number)}
+                      className="text-xs bg-yellow-100 hover:bg-yellow-200 disabled:bg-gray-100 disabled:text-gray-400 text-yellow-800 px-2 py-1 rounded transition-colors flex items-center space-x-1"
+                    >
+                      <Lightbulb className="w-3 h-3" />
+                      <span>Dica</span>
+                    </button>
                   </div>
                 ))}
               </div>
@@ -408,15 +361,14 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ onBack, onAchievement }) 
                       <span className="font-medium text-blue-800">{clue.number}.</span>
                       <span className="text-blue-700">{clue.clue}</span>
                     </div>
-                    {showHints && (
-                      <button
-                        onClick={() => showHint(clue.number)}
-                        disabled={hintsRemaining <= 0 || completedWords.includes(clue.number)}
-                        className="text-xs bg-yellow-100 hover:bg-yellow-200 disabled:bg-gray-100 disabled:text-gray-400 text-yellow-800 px-2 py-1 rounded transition-colors"
-                      >
-                        {hintsRemaining > 0 && !completedWords.includes(clue.number) ? 'Dica' : 'N/A'}
-                      </button>
-                    )}
+                    <button
+                      onClick={() => showHint(clue.number)}
+                      disabled={hintsRemaining <= 0 || completedWords.includes(clue.number)}
+                      className="text-xs bg-yellow-100 hover:bg-yellow-200 disabled:bg-gray-100 disabled:text-gray-400 text-yellow-800 px-2 py-1 rounded transition-colors flex items-center space-x-1"
+                    >
+                      <Lightbulb className="w-3 h-3" />
+                      <span>Dica</span>
+                    </button>
                   </div>
                 ))}
               </div>
@@ -432,8 +384,8 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ onBack, onAchievement }) 
           <li>• Digite letras para preencher as palavras</li>
           <li>• Use as setas do teclado para navegar</li>
           <li>• Clique na mesma célula para alternar entre horizontal e vertical</li>
-          <li>• Use as dicas (máximo 3 por jogo) para revelar uma letra aleatória</li>
-          <li>• Cada dica revela uma letra de uma palavra não completada</li>
+          <li>• Use as dicas (máximo 3 por jogo) para revelar a primeira letra de uma palavra</li>
+          <li>• Palavras completadas ficam travadas em verde</li>
         </ul>
       </div>
     </div>

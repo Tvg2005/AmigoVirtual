@@ -119,7 +119,8 @@ const MemoryGame: React.FC<MemoryGameProps> = ({ onBack, onAchievement }) => {
           setFlippedCards([]);
           setMatches(matches + 1);
 
-          if (matches + 1 === selectedSymbols.length) {
+          const { pairs } = getDifficultySettings(difficulty);
+          if (matches + 1 === pairs) {
             setGameWon(true);
             // Check achievements
             onAchievement('memory', 'completion', 1, { difficulty });
@@ -171,7 +172,6 @@ const MemoryGame: React.FC<MemoryGameProps> = ({ onBack, onAchievement }) => {
               <Star className="w-4 h-4" />
               <span>Movimentos: {moves}</span>
             </div>
-            <div>Pares: {matches}/{symbols.length}</div>
             <div>Pares: {matches}/{getDifficultySettings(difficulty).pairs}</div>
           </div>
         </div>

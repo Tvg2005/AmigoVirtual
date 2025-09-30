@@ -14,6 +14,7 @@ export interface CrosswordCell {
   number?: number;
   isBlack: boolean;
   userInput: string;
+  isLocked?: boolean;
 }
 
 export class CrosswordGenerator {
@@ -21,7 +22,7 @@ export class CrosswordGenerator {
   private grid: string[][];
   private placedWords: CrosswordClue[] = [];
   private wordNumber: number = 1;
-  private maxWords: number = 12; // Increased from implicit limit
+  private maxWords: number = 8; // Reduced for better spacing
 
   constructor() {
     this.grid = Array(this.gridSize).fill(null).map(() => 
@@ -32,7 +33,7 @@ export class CrosswordGenerator {
   generateCrossword(): { grid: CrosswordCell[][], clues: CrosswordClue[] } {
     this.reset();
     
-    // Filter out inappropriate words and shuffle for randomness
+    // Filter and shuffle words
     const appropriateWords = this.filterAppropriateWords(crosswordWords);
     const shuffledWords = [...appropriateWords].sort(() => Math.random() - 0.5);
     
@@ -43,7 +44,7 @@ export class CrosswordGenerator {
     
     // Try to place remaining words with better intersection logic
     let attempts = 0;
-    const maxAttempts = shuffledWords.length * 3;
+    const maxAttempts = shuffledWords.length * 2;
     
     for (let i = 1; i < shuffledWords.length && this.placedWords.length < this.maxWords && attempts < maxAttempts; i++) {
       if (this.tryPlaceWordWithIntersections(shuffledWords[i])) {
@@ -53,23 +54,16 @@ export class CrosswordGenerator {
       }
     }
     
-    // If we don't have enough words, try again with different approach
-    if (this.placedWords.length < 5) {
-      this.reset();
-      this.generateWithForcedPlacements(shuffledWords);
-    }
-    
     // Convert to game format
     return this.convertToGameFormat();
   }
 
   private filterAppropriateWords(words: WordData[]): WordData[] {
-    // Filter out inappropriate words (basic filter)
     const inappropriateWords = ['MERDA', 'PORRA', 'CARALHO', 'PUTA', 'FODIDO', 'BUCETA'];
     return words.filter(word => 
       !inappropriateWords.includes(word.word.toUpperCase()) &&
       word.word.length >= 3 && 
-      word.word.length <= 12
+      word.word.length <= 10 // Reduced max length for better fit
     );
   }
 
@@ -103,7 +97,7 @@ export class CrosswordGenerator {
 
   private tryPlaceWordWithIntersections(wordData: WordData): boolean {
     const word = wordData.word;
-    const maxAttempts = 100;
+    const maxAttempts = 50;
     
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       // Try to find intersection with existing words
@@ -151,55 +145,6 @@ export class CrosswordGenerator {
     return false;
   }
 
-  private generateWithForcedPlacements(words: WordData[]) {
-    // Alternative generation method for better word placement
-    const centerRow = Math.floor(this.gridSize / 2);
-    const centerCol = Math.floor(this.gridSize / 2);
-    
-    // Place first word horizontally in center
-    if (words.length > 0) {
-      const firstWord = words[0];
-      const startCol = centerCol - Math.floor(firstWord.word.length / 2);
-      
-      for (let i = 0; i < firstWord.word.length; i++) {
-        this.grid[centerRow][startCol + i] = firstWord.word[i];
-      }
-      
-      this.placedWords.push({
-        number: this.wordNumber++,
-        clue: firstWord.clue,
-        answer: firstWord.word,
-        direction: 'across',
-        startRow: centerRow,
-        startCol
-      });
-    }
-    
-    // Place second word vertically through center
-    if (words.length > 1) {
-      const secondWord = words[1];
-      const intersectionIndex = Math.floor(secondWord.word.length / 2);
-      const startRow = centerRow - intersectionIndex;
-      
-      if (this.canPlaceWord(secondWord.word, startRow, centerCol, 'down')) {
-        this.placeWord(secondWord.word, startRow, centerCol, 'down');
-        this.placedWords.push({
-          number: this.wordNumber++,
-          clue: secondWord.clue,
-          answer: secondWord.word,
-          direction: 'down',
-          startRow,
-          startCol: centerCol
-        });
-      }
-    }
-    
-    // Try to place remaining words
-    for (let i = 2; i < words.length && this.placedWords.length < this.maxWords; i++) {
-      this.tryPlaceWordWithIntersections(words[i]);
-    }
-  }
-
   private findIntersections(word1: string, word2: string): Array<{newWordIndex: number, placedWordIndex: number}> {
     const intersections: Array<{newWordIndex: number, placedWordIndex: number}> = [];
     
@@ -220,13 +165,13 @@ export class CrosswordGenerator {
   private canPlaceWord(word: string, startRow: number, startCol: number, direction: 'across' | 'down'): boolean {
     // Check bounds
     if (direction === 'across') {
-      if (startRow < 0 || startRow >= this.gridSize || 
-          startCol < 0 || startCol + word.length > this.gridSize) {
+      if (startRow < 1 || startRow >= this.gridSize - 1 || 
+          startCol < 1 || startCol + word.length >= this.gridSize - 1) {
         return false;
       }
     } else {
-      if (startCol < 0 || startCol >= this.gridSize || 
-          startRow < 0 || startRow + word.length > this.gridSize) {
+      if (startCol < 1 || startCol >= this.gridSize - 1 || 
+          startRow < 1 || startRow + word.length >= this.gridSize - 1) {
         return false;
       }
     }
@@ -242,12 +187,12 @@ export class CrosswordGenerator {
       }
     }
     
-    // Check that word doesn't touch other words inappropriately
+    // Check spacing - ensure words don't touch inappropriately
     return this.checkWordSpacing(word, startRow, startCol, direction);
   }
 
   private checkWordSpacing(word: string, startRow: number, startCol: number, direction: 'across' | 'down'): boolean {
-    // Check before and after the word
+    // Check cells around the word to ensure proper spacing
     if (direction === 'across') {
       // Check cell before
       if (startCol > 0 && this.grid[startRow][startCol - 1] !== '.') {
@@ -257,6 +202,19 @@ export class CrosswordGenerator {
       if (startCol + word.length < this.gridSize && this.grid[startRow][startCol + word.length] !== '.') {
         return false;
       }
+      
+      // Check cells above and below each letter
+      for (let i = 0; i < word.length; i++) {
+        const col = startCol + i;
+        // Check above
+        if (startRow > 0 && this.grid[startRow - 1][col] !== '.' && this.grid[startRow][col] === '.') {
+          return false;
+        }
+        // Check below
+        if (startRow < this.gridSize - 1 && this.grid[startRow + 1][col] !== '.' && this.grid[startRow][col] === '.') {
+          return false;
+        }
+      }
     } else {
       // Check cell before
       if (startRow > 0 && this.grid[startRow - 1][startCol] !== '.') {
@@ -265,6 +223,19 @@ export class CrosswordGenerator {
       // Check cell after
       if (startRow + word.length < this.gridSize && this.grid[startRow + word.length][startCol] !== '.') {
         return false;
+      }
+      
+      // Check cells left and right of each letter
+      for (let i = 0; i < word.length; i++) {
+        const row = startRow + i;
+        // Check left
+        if (startCol > 0 && this.grid[row][startCol - 1] !== '.' && this.grid[row][startCol] === '.') {
+          return false;
+        }
+        // Check right
+        if (startCol < this.gridSize - 1 && this.grid[row][startCol + 1] !== '.' && this.grid[row][startCol] === '.') {
+          return false;
+        }
       }
     }
     
@@ -284,7 +255,8 @@ export class CrosswordGenerator {
       Array(this.gridSize).fill(null).map(() => ({
         letter: '',
         isBlack: true,
-        userInput: ''
+        userInput: '',
+        isLocked: false
       }))
     );
 
@@ -295,7 +267,8 @@ export class CrosswordGenerator {
           gameGrid[row][col] = {
             letter: this.grid[row][col],
             isBlack: false,
-            userInput: ''
+            userInput: '',
+            isLocked: false
           };
         }
       }

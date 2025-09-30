@@ -18,7 +18,6 @@ export default function ColoringGame({ onBack, onAchievement }: ColoringGameProp
   const [hasDrawn, setHasDrawn] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState('animals');
   const [isLoadingImage, setIsLoadingImage] = useState(false);
-  const [showColorPicker, setShowColorPicker] = useState(false);
 
   const predefinedColors = [
     '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
@@ -29,12 +28,60 @@ export default function ColoringGame({ onBack, onAchievement }: ColoringGameProp
   ];
 
   const themes = [
-    { id: 'animals', name: 'Animais', keywords: ['cat', 'dog', 'bird', 'fish', 'butterfly'] },
-    { id: 'nature', name: 'Natureza', keywords: ['tree', 'flower', 'mountain', 'river', 'sunset'] },
-    { id: 'food', name: 'Comida', keywords: ['fruit', 'cake', 'pizza', 'ice cream', 'apple'] },
-    { id: 'vehicles', name: 'Veículos', keywords: ['car', 'airplane', 'boat', 'train', 'bicycle'] },
-    { id: 'fantasy', name: 'Fantasia', keywords: ['castle', 'dragon', 'unicorn', 'fairy', 'magic'] },
-    { id: 'patterns', name: 'Padrões', keywords: ['mandala', 'geometric', 'abstract', 'pattern', 'design'] }
+    { 
+      id: 'animals', 
+      name: 'Animais',
+      drawings: [
+        { name: 'Gato', path: 'M50,150 Q50,100 100,100 Q150,100 150,150 Q150,200 100,200 Q50,200 50,150 M75,125 C75,125 75,125 75,125 M125,125 C125,125 125,125 125,125 M100,140 L100,160 M85,160 Q100,170 115,160' },
+        { name: 'Cachorro', path: 'M60,120 Q60,80 100,80 Q140,80 140,120 Q140,180 100,180 Q60,180 60,120 M80,110 C80,110 80,110 80,110 M120,110 C120,110 120,110 120,110 M100,130 L100,150 M90,150 Q100,160 110,150' },
+        { name: 'Pássaro', path: 'M100,100 Q80,80 60,100 Q80,120 100,100 Q120,80 140,100 Q120,120 100,100 M90,95 C90,95 90,95 90,95 M110,95 C110,95 110,95 110,95 M100,105 L105,110' }
+      ]
+    },
+    { 
+      id: 'nature', 
+      name: 'Natureza',
+      drawings: [
+        { name: 'Árvore', path: 'M100,200 L100,120 M80,140 Q100,100 120,140 M70,160 Q100,120 130,160 M60,180 Q100,140 140,180' },
+        { name: 'Flor', path: 'M100,150 Q80,130 90,110 Q100,120 110,110 Q120,130 100,150 Q120,170 110,190 Q100,180 90,190 Q80,170 100,150 M100,150 C100,150 100,150 100,150' },
+        { name: 'Sol', path: 'M100,100 C120,100 120,120 100,120 C80,120 80,100 100,100 M100,70 L100,80 M130,100 L120,100 M100,130 L100,140 M70,100 L80,100 M115,85 L122,78 M115,115 L122,122 M85,85 L78,78 M85,115 L78,122' }
+      ]
+    },
+    { 
+      id: 'food', 
+      name: 'Comida',
+      drawings: [
+        { name: 'Maçã', path: 'M100,80 Q80,60 70,80 Q70,120 100,140 Q130,120 130,80 Q120,60 100,80 M100,80 Q100,70 105,65' },
+        { name: 'Pizza', path: 'M100,60 L60,140 L140,140 Z M80,100 C85,100 85,105 80,105 C75,105 75,100 80,100 M120,100 C125,100 125,105 120,105 C115,105 115,100 120,100 M100,120 C105,120 105,125 100,125 C95,125 95,120 100,120' },
+        { name: 'Sorvete', path: 'M100,160 L90,100 Q90,80 100,80 Q110,80 110,100 L100,160 M90,100 Q100,90 110,100 M85,110 Q100,100 115,110' }
+      ]
+    },
+    { 
+      id: 'vehicles', 
+      name: 'Veículos',
+      drawings: [
+        { name: 'Carro', path: 'M60,140 L60,120 Q60,100 80,100 L120,100 Q140,100 140,120 L140,140 Q140,160 120,160 L80,160 Q60,160 60,140 M75,150 C80,150 80,155 75,155 C70,155 70,150 75,150 M125,150 C130,150 130,155 125,155 C120,155 120,150 125,150' },
+        { name: 'Avião', path: 'M100,100 L140,120 L100,110 L60,120 L100,100 M100,110 L100,140 M80,130 L120,130' },
+        { name: 'Barco', path: 'M60,140 Q60,160 100,160 Q140,160 140,140 L120,140 L80,140 Z M100,140 L100,100 M90,120 L110,120' }
+      ]
+    },
+    { 
+      id: 'fantasy', 
+      name: 'Fantasia',
+      drawings: [
+        { name: 'Castelo', path: 'M60,160 L60,100 L80,100 L80,80 L90,80 L90,100 L110,100 L110,80 L120,80 L120,100 L140,100 L140,160 Z M70,120 L70,140 M130,120 L130,140 M100,120 L100,150' },
+        { name: 'Estrela', path: 'M100,60 L105,85 L130,85 L110,105 L115,130 L100,115 L85,130 L90,105 L70,85 L95,85 Z' },
+        { name: 'Coração', path: 'M100,130 Q80,110 70,120 Q70,140 100,160 Q130,140 130,120 Q120,110 100,130' }
+      ]
+    },
+    { 
+      id: 'patterns', 
+      name: 'Padrões',
+      drawings: [
+        { name: 'Mandala', path: 'M100,100 C120,100 120,120 100,120 C80,120 80,100 100,100 M100,80 C110,80 110,90 100,90 C90,90 90,80 100,80 M100,110 C110,110 110,120 100,120 C90,120 90,110 100,110 M80,100 C80,110 90,110 90,100 C90,90 80,90 80,100 M110,100 C110,110 120,110 120,100 C120,90 110,90 110,100' },
+        { name: 'Geométrico', path: 'M60,60 L140,60 L140,140 L60,140 Z M80,80 L120,80 L120,120 L80,120 Z M100,100 C110,100 110,110 100,110 C90,110 90,100 100,100' },
+        { name: 'Espiral', path: 'M100,100 Q120,100 120,120 Q120,140 100,140 Q80,140 80,120 Q80,100 100,100 Q110,100 110,110 Q110,120 100,120 Q90,120 90,110 Q90,100 100,100' }
+      ]
+    }
   ];
 
   useEffect(() => {
@@ -52,83 +99,54 @@ export default function ColoringGame({ onBack, onAchievement }: ColoringGameProp
     if (!ctx) return;
 
     try {
-      // Get random keyword from selected theme
+      // Get theme and select random drawing
       const theme = themes.find(t => t.id === selectedTheme);
-      const keywords = theme?.keywords || ['simple', 'drawing'];
-      const randomKeyword = keywords[Math.floor(Math.random() * keywords.length)];
+      if (!theme) return;
       
-      // Try to get a coloring book style image
-      const imageUrl = await getColoringImage(randomKeyword);
+      const randomDrawing = theme.drawings[Math.floor(Math.random() * theme.drawings.length)];
       
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
+      // Clear canvas with white background
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
       
-      img.onload = () => {
-        // Clear canvas with white background
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        // Calculate scaling to fit image in canvas while maintaining aspect ratio
-        const scale = Math.min(canvas.width / img.width, canvas.height / img.height);
-        const scaledWidth = img.width * scale;
-        const scaledHeight = img.height * scale;
-        const x = (canvas.width - scaledWidth) / 2;
-        const y = (canvas.height - scaledHeight) / 2;
-        
-        // Draw the image and convert to black and white outline
-        ctx.drawImage(img, x, y, scaledWidth, scaledHeight);
-        
-        // Convert to black and white outline
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const data = imageData.data;
-        
-        for (let i = 0; i < data.length; i += 4) {
-          const r = data[i];
-          const g = data[i + 1];
-          const b = data[i + 2];
-          
-          // Calculate brightness
-          const brightness = (r + g + b) / 3;
-          
-          // Create outline effect - dark pixels become black, light pixels become white
-          if (brightness < 128) {
-            data[i] = 0;     // R
-            data[i + 1] = 0; // G
-            data[i + 2] = 0; // B
-          } else {
-            data[i] = 255;     // R
-            data[i + 1] = 255; // G
-            data[i + 2] = 255; // B
-          }
-        }
-        
-        ctx.putImageData(imageData, 0, 0);
-        
-        // Store the original image data for eraser functionality
-        setOriginalImageData(ctx.getImageData(0, 0, canvas.width, canvas.height));
-        setImageLoaded(true);
-        setIsLoadingImage(false);
-      };
+      // Create SVG-based drawing
+      createDrawingFromPath(ctx, randomDrawing.path, canvas.width, canvas.height);
       
-      img.onerror = () => {
-        // Fallback: create a simple drawing
-        createFallbackDrawing(ctx, canvas);
-        setIsLoadingImage(false);
-      };
-      
-      img.src = imageUrl;
+      // Store the original image data for eraser functionality
+      setOriginalImageData(ctx.getImageData(0, 0, canvas.width, canvas.height));
+      setImageLoaded(true);
+      setIsLoadingImage(false);
       
     } catch (error) {
-      console.error('Error loading image:', error);
+      console.error('Error creating drawing:', error);
       createFallbackDrawing(ctx, canvas);
       setIsLoadingImage(false);
     }
   };
 
-  const getColoringImage = async (keyword: string): Promise<string> => {
-    // Use Lorem Picsum with a specific seed for consistency
-    const seed = Math.floor(Math.random() * 1000);
-    return `https://picsum.photos/seed/${keyword}${seed}/400/400?grayscale`;
+  const createDrawingFromPath = (ctx: CanvasRenderingContext2D, pathData: string, width: number, height: number) => {
+    // Set drawing style
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 3;
+    ctx.fillStyle = '#ffffff';
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    
+    // Scale the drawing to fit canvas
+    const scale = Math.min(width / 200, height / 200);
+    const offsetX = (width - 200 * scale) / 2;
+    const offsetY = (height - 200 * scale) / 2;
+    
+    ctx.save();
+    ctx.translate(offsetX, offsetY);
+    ctx.scale(scale, scale);
+    
+    // Parse and draw the path
+    const path = new Path2D(pathData);
+    ctx.fill(path);
+    ctx.stroke(path);
+    
+    ctx.restore();
   };
 
   const createFallbackDrawing = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
@@ -141,42 +159,66 @@ export default function ColoringGame({ onBack, onAchievement }: ColoringGameProp
     ctx.lineWidth = 3;
     ctx.fillStyle = '#ffffff';
     
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    const size = Math.min(canvas.width, canvas.height) * 0.6;
+    
     // House base
-    ctx.fillRect(100, 200, 200, 150);
-    ctx.strokeRect(100, 200, 200, 150);
+    const houseWidth = size * 0.6;
+    const houseHeight = size * 0.4;
+    const houseX = centerX - houseWidth / 2;
+    const houseY = centerY - houseHeight / 2 + size * 0.1;
+    
+    ctx.fillRect(houseX, houseY, houseWidth, houseHeight);
+    ctx.strokeRect(houseX, houseY, houseWidth, houseHeight);
     
     // Roof
     ctx.beginPath();
-    ctx.moveTo(80, 200);
-    ctx.lineTo(200, 120);
-    ctx.lineTo(320, 200);
+    ctx.moveTo(houseX - size * 0.1, houseY);
+    ctx.lineTo(centerX, houseY - size * 0.2);
+    ctx.lineTo(houseX + houseWidth + size * 0.1, houseY);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
     
     // Door
-    ctx.fillRect(180, 280, 40, 70);
-    ctx.strokeRect(180, 280, 40, 70);
+    const doorWidth = houseWidth * 0.2;
+    const doorHeight = houseHeight * 0.5;
+    const doorX = centerX - doorWidth / 2;
+    const doorY = houseY + houseHeight - doorHeight;
+    
+    ctx.fillRect(doorX, doorY, doorWidth, doorHeight);
+    ctx.strokeRect(doorX, doorY, doorWidth, doorHeight);
     
     // Windows
-    ctx.fillRect(130, 230, 30, 30);
-    ctx.strokeRect(130, 230, 30, 30);
-    ctx.fillRect(240, 230, 30, 30);
-    ctx.strokeRect(240, 230, 30, 30);
+    const windowSize = houseWidth * 0.15;
+    const windowY = houseY + houseHeight * 0.3;
+    
+    // Left window
+    ctx.fillRect(houseX + houseWidth * 0.2, windowY, windowSize, windowSize);
+    ctx.strokeRect(houseX + houseWidth * 0.2, windowY, windowSize, windowSize);
+    
+    // Right window
+    ctx.fillRect(houseX + houseWidth * 0.65, windowY, windowSize, windowSize);
+    ctx.strokeRect(houseX + houseWidth * 0.65, windowY, windowSize, windowSize);
     
     // Sun
+    const sunRadius = size * 0.08;
+    const sunX = centerX + size * 0.3;
+    const sunY = centerY - size * 0.3;
+    
     ctx.beginPath();
-    ctx.arc(350, 80, 30, 0, Math.PI * 2);
+    ctx.arc(sunX, sunY, sunRadius, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
     
     // Sun rays
     for (let i = 0; i < 8; i++) {
       const angle = (i * Math.PI * 2) / 8;
-      const x1 = 350 + Math.cos(angle) * 40;
-      const y1 = 80 + Math.sin(angle) * 40;
-      const x2 = 350 + Math.cos(angle) * 50;
-      const y2 = 80 + Math.sin(angle) * 50;
+      const x1 = sunX + Math.cos(angle) * sunRadius * 1.3;
+      const y1 = sunY + Math.sin(angle) * sunRadius * 1.3;
+      const x2 = sunX + Math.cos(angle) * sunRadius * 1.6;
+      const y2 = sunY + Math.sin(angle) * sunRadius * 1.6;
       
       ctx.beginPath();
       ctx.moveTo(x1, y1);
@@ -225,6 +267,7 @@ export default function ColoringGame({ onBack, onAchievement }: ColoringGameProp
       
       ctx.putImageData(currentImageData, startX, startY);
     } else {
+      // Use multiply blend mode for coloring effect
       ctx.globalCompositeOperation = 'multiply';
       ctx.fillStyle = selectedColor;
       ctx.beginPath();
@@ -454,7 +497,7 @@ export default function ColoringGame({ onBack, onAchievement }: ColoringGameProp
       <div className="bg-blue-50 rounded-xl p-6 border border-blue-200">
         <h3 className="text-xl font-bold text-blue-800 mb-3">Como Usar:</h3>
         <ul className="text-blue-700 space-y-2 text-lg">
-          <li>• Escolha um tema para gerar uma nova imagem para colorir</li>
+          <li>• Escolha um tema para gerar um desenho específico desse tema</li>
           <li>• Clique nas cores predefinidas ou use o seletor de cores personalizado</li>
           <li>• Digite um código hexadecimal para usar uma cor específica</li>
           <li>• Use a borracha (🧽) para remover cores aplicadas</li>
