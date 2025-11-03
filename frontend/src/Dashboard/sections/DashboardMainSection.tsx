@@ -38,6 +38,7 @@ export const DashboardMainSection = (): JSX.Element => {
   const [currentGameSlide, setCurrentGameSlide] = useState(0);
   const [todayMedications, setTodayMedications] = useState<Medication[]>([]);
   const [medicationLogs, setMedicationLogs] = useState<MedicationLog[]>([]);
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   // Jogos disponíveis
   const games = [
@@ -52,7 +53,26 @@ export const DashboardMainSection = (): JSX.Element => {
   useEffect(() => {
     fetchTodayMedications();
     fetchMedicationLogs();
+    checkDarkMode();
   }, []);
+
+  // Verificar modo dark
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsDarkMode(document.documentElement.classList.contains('dark'));
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  const checkDarkMode = () => {
+    setIsDarkMode(document.documentElement.classList.contains('dark'));
+  };
 
   const fetchTodayMedications = async () => {
     try {
@@ -127,7 +147,6 @@ export const DashboardMainSection = (): JSX.Element => {
       const isTaken = isMedicationTaken(medicationId, medicationTime);
       
       if (isTaken) {
-        // Remove log if already taken
         const today = new Date();
         const [hours, minutes] = medicationTime.split(':');
         const medicationDateTime = new Date(today.getFullYear(), today.getMonth(), today.getDate(), parseInt(hours), parseInt(minutes));
@@ -149,7 +168,6 @@ export const DashboardMainSection = (): JSX.Element => {
           if (error) throw error;
         }
       } else {
-        // Add log if not taken
         const today = new Date();
         const [hours, minutes] = medicationTime.split(':');
         const takenAt = new Date(today.getFullYear(), today.getMonth(), today.getDate(), parseInt(hours), parseInt(minutes));
@@ -164,7 +182,6 @@ export const DashboardMainSection = (): JSX.Element => {
         if (error) throw error;
       }
 
-      // Refresh logs after update
       fetchMedicationLogs();
     } catch (error) {
       console.error('Error toggling medication:', error);
@@ -215,11 +232,20 @@ export const DashboardMainSection = (): JSX.Element => {
   const currentGames = games.slice(currentGameSlide * gamesPerSlide, (currentGameSlide + 1) * gamesPerSlide);
 
   return (
-    <main className="fixed top-20 left-80 right-0 bottom-0 p-4 overflow-auto" style={{ backgroundColor: '#E8F0F8' }}>
+    <main 
+      className={`fixed top-20 left-80 right-0 bottom-0 p-4 overflow-auto transition-colors duration-300 ${
+        isDarkMode ? 'bg-gray-900' : 'bg-[#E8F0F8]'
+      }`}
+    >
       <div className="grid grid-cols-2 gap-4 h-full">
 
         {/* Chat Interface - Top Left */}
-    <Card className="rounded-[20px] shadow-lg border-0 relative overflow-hidden" style={{ backgroundColor: '#B9D0E9', padding: '50px' }}>
+        <Card 
+          className={`rounded-[20px] shadow-lg border-0 relative overflow-hidden transition-colors duration-300 ${
+            isDarkMode ? 'bg-gray-800' : 'bg-[#B9D0E9]'
+          }`} 
+          style={{ padding: '50px' }}
+        >
           <CardContent className="p-0 relative h-full flex flex-col">
             {/* Background Effects */}
             <div className="absolute w-32 h-32 top-4 left-4 rounded-full blur-lg opacity-30" style={{ background: 'radial-gradient(circle, rgba(173, 216, 255, 0.3) 0%, transparent 70%)' }} />
@@ -236,62 +262,79 @@ export const DashboardMainSection = (): JSX.Element => {
 
             {/* Content */}
             <div className="flex-1 flex flex-col justify-center pr-36 z-20">
-              <h1 className="text-3xl font-bold" style={{ color: '#2D5B7A' }}>
+              <h1 className={`text-3xl font-bold transition-colors duration-300 ${
+                isDarkMode ? 'text-blue-300' : 'text-[#2D5B7A]'
+              }`}>
                 Olá, Maria!
               </h1>
-              <p className="mt-5 text-sm mb-12 font-semibold max-w-xs"style={{ color: '#2D5B7A' }}>
+              <p className={`mt-5 text-sm mb-12 font-semibold max-w-xs transition-colors duration-300 ${
+                isDarkMode ? 'text-blue-200' : 'text-[#2D5B7A]'
+              }`}>
                 Sobre o que gostaria de conversar hoje?
               </p>
             </div>
 
             {/* Input Area */}
             <form onSubmit={handleSendMessage} className="mt-auto z-20">
-              <div className="bg-white/80 backdrop-blur-sm rounded-full flex items-center p-1 shadow-md max-w-max">
+              <div className={`backdrop-blur-sm rounded-full flex items-center p-1 shadow-md max-w-max transition-colors duration-300 ${
+                isDarkMode ? 'bg-gray-700/80' : 'bg-white/80'
+              }`}>
                 <Input
                   value={chatMessage}
                   onChange={(e) => setChatMessage(e.target.value)}
                   placeholder="Digite algo..."
-                  className="flex-1 ml-4 bg-transparent border-none text-sm font-medium text-gray-800 placeholder:text-gray-600 focus-visible:ring-0 focus-visible:outline-none"
+                  className={`flex-1 ml-4 bg-transparent border-none text-sm font-medium focus-visible:ring-0 focus-visible:outline-none transition-colors duration-300 ${
+                    isDarkMode 
+                      ? 'text-gray-100 placeholder:text-gray-400' 
+                      : 'text-gray-800 placeholder:text-gray-600'
+                  }`}
                 />
-                  <Button
-              type="submit"
-              size="icon"
-              className="w-8 h-8 bg-white-500 hover:bg-white-600 rounded-full mr-1 flex items-center justify-center"
-            >
-              <img 
-                src="/Sent.png" 
-                alt="Enviar" 
-                className="w-4 h-4"
-              />
-            </Button>
-
+                <Button
+                  type="submit"
+                  size="icon"
+                  className={`w-8 h-8 rounded-full mr-1 flex items-center justify-center transition-colors duration-300 ${
+                    isDarkMode ? 'bg-gray-600 hover:bg-gray-500' : 'bg-white hover:bg-gray-50'
+                  }`}
+                >
+                  <img 
+                    src="/Sent.png" 
+                    alt="Enviar" 
+                    className="w-4 h-4"
+                  />
+                </Button>
               </div>
             </form>
           </CardContent>
         </Card>
 
         {/* Calendar/Medication Schedule - Top Right */}
-        <Card className="rounded-[20px] p-2 shadow-lg border-0" style={{ backgroundColor: '#B9D0E9' }}>
+        <Card 
+          className={`rounded-[20px] p-2 shadow-lg border-0 transition-colors duration-300 ${
+            isDarkMode ? 'bg-gray-800' : 'bg-[#B9D0E9]'
+          }`}
+        >
           <CardContent className="p-0 relative h-full">
             {/* Date Header */}
             <div className="flex items-center justify-between p-4 pb-2">
-              <h2 className="text-xl font-semibold" style={{ color: '#2D5B7A' }}>
+              <h2 className={`text-xl font-semibold transition-colors duration-300 ${
+                isDarkMode ? 'text-blue-300' : 'text-[#2D5B7A]'
+              }`}>
                 {formatDate(currentDate)}
               </h2>
               <div className="flex gap-1">
                 <Button
                   size="icon"
                   onClick={() => handleDateNavigation("prev")}
-                  className="w-8 h-8 rounded-full mr-4 flex-shrink-0"
-                  style={{ backgroundColor: 'rgba(45, 91, 122, 0.7)' }}
+                  className="w-8 h-8 rounded-full mr-4 flex-shrink-0 transition-colors duration-300"
+                  style={{ backgroundColor: isDarkMode ? 'rgba(75, 85, 99, 0.7)' : 'rgba(45, 91, 122, 0.7)' }}
                 >
                   <ChevronLeftIcon className="w-4 h-4 text-white" />
                 </Button>
                 <Button
                   size="icon"
                   onClick={() => handleDateNavigation("next")}
-                  className="w-8 h-8 rounded-full mr-4 flex-shrink-0"
-                  style={{ backgroundColor: 'rgba(45, 91, 122, 0.7)' }}
+                  className="w-8 h-8 rounded-full mr-4 flex-shrink-0 transition-colors duration-300"
+                  style={{ backgroundColor: isDarkMode ? 'rgba(75, 85, 99, 0.7)' : 'rgba(45, 91, 122, 0.7)' }}
                 >
                   <ChevronRightIcon className="w-4 h-4 text-white" />
                 </Button>
@@ -299,13 +342,19 @@ export const DashboardMainSection = (): JSX.Element => {
             </div>
 
             {/* Medication Schedule */}
-            <div className="mx-4 mb-4 bg-white/70 backdrop-blur-md rounded-2xl border-0 shadow-sm p-5">
+            <div className={`mx-4 mb-4 backdrop-blur-md rounded-2xl border-0 shadow-sm p-5 transition-colors duration-300 ${
+              isDarkMode ? 'bg-gray-700/70' : 'bg-white/70'
+            }`}>
               {/* Morning Schedule */}
               {morningMeds.length > 0 && (
                 <div className="mb-4">
                   <div className="flex items-center gap-2 mb-3">
-                    <span className="text-sm font-semibold" style={{ color: '#2D5B7A' }}>07:00-12:00</span>
-                    <div className="flex-1 h-px bg-gray-300" />
+                    <span className={`text-sm font-semibold transition-colors duration-300 ${
+                      isDarkMode ? 'text-blue-300' : 'text-[#2D5B7A]'
+                    }`}>07:00-12:00</span>
+                    <div className={`flex-1 h-px transition-colors duration-300 ${
+                      isDarkMode ? 'bg-gray-600' : 'bg-gray-300'
+                    }`} />
                   </div>
                   <div className="space-y-2">
                     {morningMeds.map((med) => {
@@ -317,16 +366,24 @@ export const DashboardMainSection = (): JSX.Element => {
                             className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-300 transform hover:scale-110 ${
                               isTaken 
                                 ? 'bg-green-500 border-green-500 animate-pulse' 
-                                : 'bg-white border-blue-400 hover:border-blue-600'
+                                : isDarkMode
+                                  ? 'bg-gray-800 border-blue-500 hover:border-blue-400'
+                                  : 'bg-white border-blue-400 hover:border-blue-600'
                             }`}
                           >
                             {isTaken && (
                               <CheckIcon className="w-3 h-3 text-white animate-bounce" />
                             )}
                           </button>
-                          <span className="font-medium text-gray-800">{med.time}</span>
-                          <span className="text-gray-600">|</span>
-                          <span className="text-gray-800">{med.name}</span>
+                          <span className={`font-medium transition-colors duration-300 ${
+                            isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                          }`}>{med.time}</span>
+                          <span className={`transition-colors duration-300 ${
+                            isDarkMode ? 'text-gray-500' : 'text-gray-600'
+                          }`}>|</span>
+                          <span className={`transition-colors duration-300 ${
+                            isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                          }`}>{med.name}</span>
                         </div>
                       );
                     })}
@@ -338,8 +395,12 @@ export const DashboardMainSection = (): JSX.Element => {
               {afternoonMeds.length > 0 && (
                 <div>
                   <div className="flex items-center gap-2 mb-3">
-                    <span className="text-sm font-semibold" style={{ color: '#2D5B7A' }}>12:00-18:00</span>
-                    <div className="flex-1 h-px bg-gray-300" />
+                    <span className={`text-sm font-semibold transition-colors duration-300 ${
+                      isDarkMode ? 'text-blue-300' : 'text-[#2D5B7A]'
+                    }`}>12:00-18:00</span>
+                    <div className={`flex-1 h-px transition-colors duration-300 ${
+                      isDarkMode ? 'bg-gray-600' : 'bg-gray-300'
+                    }`} />
                   </div>
                   <div className="space-y-2">
                     {afternoonMeds.map((med) => {
@@ -351,16 +412,24 @@ export const DashboardMainSection = (): JSX.Element => {
                             className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-300 transform hover:scale-110 ${
                               isTaken 
                                 ? 'bg-green-500 border-green-500 animate-pulse' 
-                                : 'bg-white border-blue-400 hover:border-blue-600'
+                                : isDarkMode
+                                  ? 'bg-gray-800 border-blue-500 hover:border-blue-400'
+                                  : 'bg-white border-blue-400 hover:border-blue-600'
                             }`}
                           >
                             {isTaken && (
                               <CheckIcon className="w-3 h-3 text-white animate-bounce" />
                             )}
                           </button>
-                          <span className="font-medium text-gray-800">{med.time}</span>
-                          <span className="text-gray-600">|</span>
-                          <span className="text-gray-800">{med.name}</span>
+                          <span className={`font-medium transition-colors duration-300 ${
+                            isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                          }`}>{med.time}</span>
+                          <span className={`transition-colors duration-300 ${
+                            isDarkMode ? 'text-gray-500' : 'text-gray-600'
+                          }`}>|</span>
+                          <span className={`transition-colors duration-300 ${
+                            isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                          }`}>{med.name}</span>
                         </div>
                       );
                     })}
@@ -370,7 +439,9 @@ export const DashboardMainSection = (): JSX.Element => {
 
               {/* No medications message */}
               {morningMeds.length === 0 && afternoonMeds.length === 0 && (
-                <div className="text-center py-8 text-gray-500">
+                <div className={`text-center py-8 transition-colors duration-300 ${
+                  isDarkMode ? 'text-gray-400' : 'text-gray-500'
+                }`}>
                   <PillIcon className="w-8 h-8 mx-auto mb-2 opacity-50" />
                   <p className="text-sm">Nenhum medicamento agendado para hoje</p>
                 </div>
@@ -380,20 +451,25 @@ export const DashboardMainSection = (): JSX.Element => {
         </Card>
 
         {/* Games Section - Bottom Left */}
-        <Card className="rounded-[20px] border-0 shadow-lg" style={{ backgroundColor: '#B9D0E9' }}>
+        <Card 
+          className={`rounded-[20px] border-0 shadow-lg transition-colors duration-300 ${
+            isDarkMode ? 'bg-gray-800' : 'bg-[#B9D0E9]'
+          }`}
+        >
           <CardContent className="p-0 relative h-full flex flex-col">
-          <h2 className="text-3xl font-semibold text-center py-6" style={{ color: '#2D5B7A' }}>
-            Jogos
-          </h2>
-
+            <h2 className={`text-3xl font-semibold text-center py-6 transition-colors duration-300 ${
+              isDarkMode ? 'text-blue-300' : 'text-[#2D5B7A]'
+            }`}>
+              Jogos
+            </h2>
             
             {/* Games Slider */}
             <div className="flex-1 flex items-center justify-center px-4">
               <Button
                 size="icon"
                 onClick={() => handleGameSlide("prev")}
-                className="w-8 h-8 rounded-full mr-4 flex-shrink-0"
-                style={{ backgroundColor: 'rgba(45, 91, 122, 0.7)' }}
+                className="w-8 h-8 rounded-full mr-4 flex-shrink-0 transition-colors duration-300"
+                style={{ backgroundColor: isDarkMode ? 'rgba(75, 85, 99, 0.7)' : 'rgba(45, 91, 122, 0.7)' }}
                 disabled={currentGameSlide === 0}
               >
                 <ChevronLeftIcon className="w-4 h-4 text-white" />
@@ -403,10 +479,14 @@ export const DashboardMainSection = (): JSX.Element => {
                 {currentGames.map((game) => (
                   <div
                     key={game.id}
-                    className="bg-white/60 rounded-xl p-3 flex flex-col items-center justify-center cursor-pointer hover:scale-105 transition-transform duration-200 shadow-sm"
+                    className={`rounded-xl p-3 flex flex-col items-center justify-center cursor-pointer hover:scale-105 transition-all duration-200 shadow-sm ${
+                      isDarkMode ? 'bg-gray-700/60 hover:bg-gray-600/60' : 'bg-white/60 hover:bg-white/80'
+                    }`}
                   >
                     <span className="text-2xl mb-1">{game.icon}</span>
-                    <span className="text-xs text-center text-gray-700 leading-tight">
+                    <span className={`text-xs text-center leading-tight transition-colors duration-300 ${
+                      isDarkMode ? 'text-gray-200' : 'text-gray-700'
+                    }`}>
                       {game.name}
                     </span>
                   </div>
@@ -416,8 +496,8 @@ export const DashboardMainSection = (): JSX.Element => {
               <Button
                 size="icon"
                 onClick={() => handleGameSlide("next")}
-                className="w-8 h-8 rounded-full ml-4 flex-shrink-0"
-                style={{ backgroundColor: 'rgba(45, 91, 122, 0.7)' }}
+                className="w-8 h-8 rounded-full ml-4 flex-shrink-0 transition-colors duration-300"
+                style={{ backgroundColor: isDarkMode ? 'rgba(75, 85, 99, 0.7)' : 'rgba(45, 91, 122, 0.7)' }}
                 disabled={currentGameSlide >= Math.ceil(games.length / 4) - 1}
               >
                 <ChevronRightIcon className="w-4 h-4 text-white" />
@@ -429,8 +509,10 @@ export const DashboardMainSection = (): JSX.Element => {
               {Array.from({ length: Math.ceil(games.length / 4) }).map((_, index) => (
                 <div
                   key={index}
-                  className={`w-2 h-2 rounded-full transition-colors ${
-                    index === currentGameSlide ? 'bg-[#548bc5]' : 'bg-blue-300'
+                  className={`w-2 h-2 rounded-full transition-colors duration-300 ${
+                    index === currentGameSlide 
+                      ? isDarkMode ? 'bg-blue-400' : 'bg-[#548bc5]'
+                      : isDarkMode ? 'bg-gray-600' : 'bg-blue-300'
                   }`}
                 />
               ))}
@@ -439,25 +521,41 @@ export const DashboardMainSection = (): JSX.Element => {
         </Card>
 
         {/* News/Additional Content - Bottom Right */}
-        <Card className="rounded-[20px] border-0 shadow-lg" style={{ backgroundColor: '#B9D0E9' }}>
+        <Card 
+          className={`rounded-[20px] border-0 shadow-lg transition-colors duration-300 ${
+            isDarkMode ? 'bg-gray-800' : 'bg-[#B9D0E9]'
+          }`}
+        >
           <CardContent className="p-4 space-y-3 h-full flex flex-col">
             {/* Header */}
-            <div className="bg-white rounded-xl p-4 text-center">
-              <h3 className="text-lg font-semibold text-gray-800">notícias</h3>
+            <div className={`rounded-xl p-4 text-center transition-colors duration-300 ${
+              isDarkMode ? 'bg-gray-700' : 'bg-white'
+            }`}>
+              <h3 className={`text-lg font-semibold transition-colors duration-300 ${
+                isDarkMode ? 'text-gray-100' : 'text-gray-800'
+              }` }>notícias</h3>
             </div>
 
             {/* Content Sections */}
             <div className="flex-1 space-y-3">
-              <div className="bg-white/90 rounded-xl p-4 flex items-center justify-center min-h-[80px]">
+              <div className={`rounded-xl p-4 flex items-center justify-center min-h-[80px] transition-colors duration-300 ${
+                isDarkMode ? 'bg-gray-700/90' : 'bg-white/90'
+              }`}>
                 <div className="text-center">
                   <HeadphonesIcon className="w-8 h-8 text-blue-600 mx-auto mb-1" />
-                  <p className="text-sm font-medium text-gray-800">Suporte 24h</p>
+                  <p className={`text-sm font-medium transition-colors duration-300 ${
+                    isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                  }`}>Suporte 24h</p>
                 </div>
               </div>
-              <div className="bg-white/90 rounded-xl p-4 flex items-center justify-center min-h-[80px]">
+              <div className={`rounded-xl p-4 flex items-center justify-center min-h-[80px] transition-colors duration-300 ${
+                isDarkMode ? 'bg-gray-700/90' : 'bg-white/90'
+              }`}>
                 <div className="text-center">
                   <LightbulbIcon className="w-8 h-8 text-yellow-600 mx-auto mb-1" />
-                  <p className="text-sm font-medium text-gray-800">Dicas Diárias</p>
+                  <p className={`text-sm font-medium transition-colors duration-300 ${
+                    isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                  }`}>Dicas Diárias</p>
                 </div>
               </div>
             </div>

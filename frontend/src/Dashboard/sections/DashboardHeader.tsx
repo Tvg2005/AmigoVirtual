@@ -15,13 +15,16 @@ export const DashboardHeader = (): JSX.Element => {
 
   // Função para alternar tema
   const handleThemeToggle = () => {
-    setIsDarkMode(!isDarkMode);
+    const newMode = !isDarkMode;
+    setIsDarkMode(newMode);
     
     // Aplicar tema no documento
-    if (!isDarkMode) {
+    if (newMode) {
       document.documentElement.classList.add("dark");
+      document.body.classList.add("dark");
     } else {
       document.documentElement.classList.remove("dark");
+      document.body.classList.remove("dark");
     }
   };
 
@@ -43,16 +46,28 @@ export const DashboardHeader = (): JSX.Element => {
   };
 
   return (
-    <header className="fixed top-0 left-80 right-0 h-20 bg-gradient-to-r from-blue-50 to-blue-100 border-b border-blue-200 flex items-center justify-between px-8 z-20">
+    <header className={`fixed top-0 left-80 right-0 h-20 border-b flex items-center justify-between px-8 z-20 transition-colors duration-300 ${
+      isDarkMode 
+        ? "bg-gradient-to-r from-gray-800 to-gray-900 border-gray-700" 
+        : "bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200"
+    }`}>
       
       {/* Search Bar */}
       <form onSubmit={handleSearch} className="relative flex-1 max-w-lg">
-        <div className="relative h-12 bg-white rounded-full border-2 border-[#548bc54f] flex items-center overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200">
+        <div className={`relative h-12 rounded-full border-2 flex items-center overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 ${
+          isDarkMode
+            ? "bg-gray-700 border-gray-600"
+            : "bg-white border-[#548bc54f]"
+        }`}>
           <Input
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Pesquisa..."
-            className="flex-1 ml-5 mr-4 bg-transparent border-none p-0 shadow-none font-medium text-gray-800 text-base placeholder:text-gray-500 focus-visible:ring-0 focus-visible:outline-none h-full"
+            className={`flex-1 ml-5 mr-4 bg-transparent border-none p-0 shadow-none font-medium text-base focus-visible:ring-0 focus-visible:outline-none h-full ${
+              isDarkMode
+                ? "text-gray-100 placeholder:text-gray-400"
+                : "text-gray-800 placeholder:text-gray-500"
+            }`}
           />
           <Button
             type="submit"
@@ -72,7 +87,11 @@ export const DashboardHeader = (): JSX.Element => {
         {/* Theme Toggle */}
         <div 
           onClick={handleThemeToggle}
-          className="h-12 bg-white rounded-lg flex items-center border-2 border-[#548bc54f] cursor-pointer transition-all duration-200 hover:shadow-md overflow-hidden"
+          className={`h-12 rounded-lg flex items-center border-2 cursor-pointer transition-all duration-200 hover:shadow-md overflow-hidden ${
+            isDarkMode
+              ? "bg-gray-700 border-gray-600"
+              : "bg-white border-[#548bc54f]"
+          }`}
         >
           <div 
             className={`flex items-center justify-center h-full px-3 transition-all duration-300 ${

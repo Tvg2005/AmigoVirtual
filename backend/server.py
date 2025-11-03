@@ -27,7 +27,7 @@ app.add_middleware(
 # Constantes
 BOT_NAME = "Eliza"
 KNOWLEDGE_BASE_FILE = "knowledge_base.json"
-API_KEY = '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'
+API_KEY = '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'
 API_URL = 'https://openrouter.ai/api/v1/chat/completions'
 
 # Variáveis globais
