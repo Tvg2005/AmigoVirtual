@@ -59,13 +59,16 @@ export default function AccessibilityMenu() {
     setSettings(newSettings);
     applySettings(newSettings);
     localStorage.setItem('accessibilitySettings', JSON.stringify(newSettings));
-    announceText('Modo de alto contraste ' + (newSettings.highContrast ? 'ativado' : 'desativado'));
+    if (settings.screenReader) {
+      announceText('Modo de alto contraste ' + (newSettings.highContrast ? 'ativado' : 'desativado'));
+    }
   };
 
   const toggleScreenReader = () => {
     const newSettings = { ...settings, screenReader: !settings.screenReader };
     setSettings(newSettings);
     localStorage.setItem('accessibilitySettings', JSON.stringify(newSettings));
+    // Sempre anunciar mudança de leitura de tela, mesmo quando desativando
     announceText('Leitura de tela ' + (newSettings.screenReader ? 'ativada' : 'desativada'));
   };
 
@@ -74,7 +77,9 @@ export default function AccessibilityMenu() {
     setSettings(newSettings);
     applySettings(newSettings);
     localStorage.setItem('accessibilitySettings', JSON.stringify(newSettings));
-    announceText(`Tamanho da fonte alterado para ${size}%`);
+    if (settings.screenReader) {
+      announceText(`Tamanho da fonte alterado para ${size}%`);
+    }
   };
 
   const announceText = (text: string) => {
@@ -192,6 +197,9 @@ export default function AccessibilityMenu() {
 
             <button
               onClick={() => {
+                if (settings.screenReader) {
+                  announceText('Acessibilidades redefinidas para padrão');
+                }
                 setSettings({
                   highContrast: false,
                   screenReader: false,
@@ -200,7 +208,6 @@ export default function AccessibilityMenu() {
                 document.documentElement.classList.remove('high-contrast');
                 document.documentElement.style.fontSize = '100%';
                 localStorage.removeItem('accessibilitySettings');
-                announceChange('Acessibilidades redefinidas para padrão');
               }}
               className="w-full mt-6 py-2 px-4 bg-gray-200 hover:bg-gray-300 text-gray-700
                        rounded-lg font-semibold transition-colors text-sm"
