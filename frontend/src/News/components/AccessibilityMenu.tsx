@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Settings, X, Volume2, Eye, Type } from 'lucide-react';
 
 interface AccessibilitySettings {
