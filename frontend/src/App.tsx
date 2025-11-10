@@ -5,12 +5,12 @@ import DashboardNovo from './Dashboard/Dashboard';
 import Desktop from './Desktop/Desktop';
 import Login from './Login&Register/Login';
 import Register from './Login&Register/Register';
-import DashboardVelho from './Dashboard/DashboardVelho';
 import News from './News/News';
 import MedicationReminders from './MedicationReminder/MedicationReminders';
 import ChatbotPage from './ChatBot/Chatbot';
 import ChatBot from './Desktop/components/ChatBot';
 import ChatBotButton from './Desktop/components/ChatBotButton';
+import Games from './Games/Games';
 
 
 function App() {
@@ -24,14 +24,14 @@ function App() {
     <Router>
       <div className="min-h-screen bg-gray-50">
         <Routes>
+          {/* Página de Jogos */}
+          <Route path='/jogos' element={<Games/>} />
+
           {/* Página de Notícias */}
           <Route path='/noticias' element={<News/>} />
 
           {/* Página do Chatbot */}
           <Route path="/chatbot" element={<ChatbotPage />} />
-
-          {/* Velho Dashboard */}
-          <Route path="/dashboard-velho" element={<DashboardVelho />} />
 
           {/* Homepage - Desktop */}
           <Route path="/" element={<Desktop />} />

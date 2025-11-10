@@ -7,6 +7,8 @@ import {
 } from "lucide-react";
 import { Button } from "../components/button";
 import { Input } from "../components/input";
+import AccessibilityMenu from "../components/AccessibilityMenu";
+
 
 interface ChatHeaderProps {
   isDarkMode: boolean;
@@ -39,16 +41,22 @@ export const ChatHeader = ({ isDarkMode, onThemeToggle }: ChatHeaderProps): JSX.
     }
   };
 
-  // Função para configurações
-  const handleSettings = () => {
-    setShowSettings(!showSettings);
-    console.log("Abrindo configurações...");
-    // Aqui você pode implementar a abertura de um modal ou navegação
-  };
 
   return (
-    <header className="fixed top-0 left-0 right-0 h-20 bg-gradient-to-r from-blue-50 to-blue-100 border-b border-blue-200 flex items-center justify-between px-8 z-20">
-      
+    <header className="fixed top-0 left-0 right-0 h-20 bg-gradient-to-r from-blue-300 to-blue-200 border-b border-blue-300 flex items-center justify-between px-8 z-20">
+      {/* Logo */}
+          <div className="flex items-center space-x-3">
+            <div>
+              <img src="../../public/robot copy.png" alt="elizIA Logo" className="h-12 w-12 object-contain" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-blue-700 tracking-tight">
+                eliz<span className="text-blue-400">IA</span>
+              </h1>
+              <p className="text-blue-600 text-xs font-medium">Notícias em Tempo Real</p>
+            </div>
+          </div>
+
       {/* Search Bar */}
       {/* <form onSubmit={handleSearch} className="relative flex-1 max-w-lg"> */}
         {/* <div className="relative h-12 bg-white rounded-full border-2 border-[#548bc54f] flex items-center overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200"> */}
@@ -83,7 +91,7 @@ export const ChatHeader = ({ isDarkMode, onThemeToggle }: ChatHeaderProps): JSX.
           <div 
             className={`flex items-center justify-center h-full px-3 transition-all duration-300 ${
               !isDarkMode 
-                ? "bg-[#548AC5] text-white" 
+                ? "bg-blue-400 text-white" 
                 : "bg-transparent text-[#548AC5] hover:bg-blue-50"
             }`}
           >
@@ -101,42 +109,9 @@ export const ChatHeader = ({ isDarkMode, onThemeToggle }: ChatHeaderProps): JSX.
         </div>
 
         {/* Settings Button */}
-        <Button
-        onClick={handleSettings}
-        size="icon"
-        variant="ghost"
-        className={`w-12 h-12 rounded-lg transition-all duration-200 border-2 ${
-          showSettings 
-            ? "bg-[#548AC5] text-white border-[#FFFFFF]" 
-            : "bg-white hover:bg-[#548AC5] hover:text-white hover:border-[#548AC5] border-[#548bc54f]"
-        }`}
-      >
-        <SettingsIcon 
-          className={`w-6 h-6 transition-transform duration-200 ${
-            showSettings ? "rotate-90" : ""
-          }`} 
-        />
-      </Button>
-
+       <AccessibilityMenu/>
       </div>
 
-      {/* Settings Dropdown */}
-      {showSettings && (
-        <div className="absolute top-full right-8 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-30">
-          <h3 className="font-medium text-gray-800 mb-2 text-sm">Configurações</h3>
-          <div className="space-y-1">
-            <Button variant="ghost" className="w-full justify-start text-sm h-8 px-2">
-              Preferências
-            </Button>
-            <Button variant="ghost" className="w-full justify-start text-sm h-8 px-2">
-              Acessibilidade
-            </Button>
-            <Button variant="ghost" className="w-full justify-start text-sm h-8 px-2">
-              Sobre
-            </Button>
-          </div>
-        </div>
-      )}
     </header>
   );
 };

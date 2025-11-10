@@ -1,4 +1,4 @@
-const API_KEY = import.meta.env.VITE_GNEWS_API_KEY || '19a04b2465259c6dce25c381c9dda9da';
+const API_KEY = import.meta.env.VITE_GNEWS_API_KEY || 'eee2a17c8a9c28385a98e09b5448f34e';
 const BASE_URL = 'https://gnews.io/api/v4';
 
 // Cache para evitar muitas requisições

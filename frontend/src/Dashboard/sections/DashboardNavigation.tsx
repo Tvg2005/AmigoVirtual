@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "../components/avatar";
 import { Button } from "../components/button";
@@ -14,7 +14,7 @@ export const DashboardNavigation = (): JSX.Element => {
 
   const navigationItems = [
     { icon: MessageSquareIcon, label: "Eliza", image: "/message-bot.png", route: "/chatbot" },
-    { icon: Gamepad2Icon, label: "Jogos", image: "/game-controller.png", route: null },
+    { icon: Gamepad2Icon, label: "Jogos", image: "/game-controller.png", route: "/jogos" },
     { icon: PillIcon, label: "Remédios", image: "/hand-with-a-pill.png", route: "/medication-reminders" },
     { icon: LightbulbIcon, label: "Notícias", image: "/morning-news.png", route: "/noticias" },
   ];
