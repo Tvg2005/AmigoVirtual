@@ -1,0 +1,429 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Alto Contraste - Estilos Globais */
+html.high-contrast {
+  background-color: #000000;
+  color: #ffffff;
+}
+
+html.high-contrast * {
+  border-color: #ffffff;
+}
+
+/* Header */
+html.high-contrast header {
+  background-color: #000000;
+  border: 4px solid #ffffff;
+}
+
+html.high-contrast header h1,
+html.high-contrast header p {
+  color: #ffffff !important;
+}
+
+/* Inputs e TextAreas */
+html.high-contrast input,
+html.high-contrast textarea {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  border: 2px solid #ffffff !important;
+}
+
+html.high-contrast input::placeholder,
+html.high-contrast textarea::placeholder {
+  color: #666666 !important;
+  opacity: 0.7 !important;
+}
+
+/* Remove qualquer elemento branco dentro de inputs */
+html.high-contrast input::before,
+html.high-contrast input::after,
+html.high-contrast textarea::before,
+html.high-contrast textarea::after {
+  display: none !important;
+}
+
+/* Remove backgrounds de elementos dentro de inputs */
+html.high-contrast input *,
+html.high-contrast textarea * {
+  background-color: transparent !important;
+}
+
+/* Botões */
+html.high-contrast button {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  border: 2px solid #ffffff !important;
+}
+
+html.high-contrast button:hover {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+html.high-contrast button:disabled {
+  opacity: 0.5;
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+/* Botões com imagens dentro (como o botão de enviar) */
+html.high-contrast button img {
+  filter: invert(1) !important;
+  background-color: transparent !important;
+}
+
+html.high-contrast button:hover img {
+  filter: invert(0) !important;
+}
+
+/* Cards e Backgrounds - MANTÉM CONTEÚDO VISÍVEL */
+html.high-contrast [class*="bg-white"],
+html.high-contrast [class*="bg-gray"],
+html.high-contrast [class*="bg-blue"] {
+  background-color: #000000 !important;
+  border: 2px solid #ffffff !important;
+}
+
+/* NÃO aplicar background preto em gradientes */
+html.high-contrast [class*="bg-gradient"] {
+  background: transparent !important;
+  border: 2px solid #ffffff !important;
+}
+
+/* Textos - Todas as variações de gray */
+html.high-contrast .text-gray-100,
+html.high-contrast .text-gray-200,
+html.high-contrast .text-gray-300,
+html.high-contrast .text-gray-400,
+html.high-contrast .text-gray-500,
+html.high-contrast .text-gray-600,
+html.high-contrast .text-gray-700,
+html.high-contrast .text-gray-800,
+html.high-contrast .text-gray-900 {
+  color: #ffffff !important;
+}
+
+/* Textos - Todas as variações de blue */
+html.high-contrast .text-blue-100,
+html.high-contrast .text-blue-200,
+html.high-contrast .text-blue-300,
+html.high-contrast .text-blue-400,
+html.high-contrast .text-blue-500,
+html.high-contrast .text-blue-600,
+html.high-contrast .text-blue-700,
+html.high-contrast .text-blue-800,
+html.high-contrast .text-blue-900 {
+  color: #ffffff !important;
+}
+
+/* Textos genéricos */
+html.high-contrast [class*="text-gray"],
+html.high-contrast [class*="text-blue"] {
+  color: #ffffff !important;
+}
+
+/* Garantir que títulos, parágrafos e spans sejam visíveis */
+html.high-contrast h1,
+html.high-contrast h2,
+html.high-contrast h3,
+html.high-contrast h4,
+html.high-contrast h5,
+html.high-contrast h6,
+html.high-contrast p,
+html.high-contrast span,
+html.high-contrast div {
+  color: #ffffff !important;
+}
+
+/* Hovers em backgrounds */
+html.high-contrast .hover\:bg-blue-50:hover,
+html.high-contrast .hover\:bg-gray-200:hover,
+html.high-contrast .hover\:bg-gray-100:hover,
+html.high-contrast .hover\:bg-gray-50:hover,
+html.high-contrast [class*="hover:bg-"]:hover {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+/* Sombras */
+html.high-contrast .shadow-xl,
+html.high-contrast .shadow-2xl,
+html.high-contrast .shadow-lg,
+html.high-contrast .shadow-md,
+html.high-contrast .shadow-sm,
+html.high-contrast .shadow {
+  box-shadow: 0 0 0 3px #ffffff !important;
+}
+
+/* MANTÉM backdrop-blur mas com fundo preto */
+html.high-contrast [class*="backdrop-blur"] {
+  background-color: #000000 !important;
+}
+
+/* Dividers e Bordas */
+html.high-contrast [class*="h-px"] {
+  background-color: #ffffff !important;
+}
+
+html.high-contrast .border-t,
+html.high-contrast .border-b,
+html.high-contrast .border-l,
+html.high-contrast .border-r {
+  border-color: #ffffff !important;
+}
+
+/* Links */
+html.high-contrast a {
+  color: #ffffff !important;
+  text-decoration: underline;
+}
+
+html.high-contrast a:hover {
+  color: #d1d5db !important;
+}
+
+/* ========================================== */
+/* CORREÇÕES PARA DASHBOARD NAVIGATION */
+/* ========================================== */
+
+/* Sidebar do Dashboard - Fundo preto com borda */
+html.high-contrast aside {
+  background: #000000 !important;
+  border-right: 4px solid #ffffff !important;
+}
+
+/* Avatar e imagem do robô - SEMPRE visíveis sem filtros e SEM bordas */
+html.high-contrast aside img[alt="Robot"],
+html.high-contrast aside img[src*="robot-logo"] {
+  opacity: 1 !important;
+  filter: none !important;
+  background-color: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Container do avatar com elipse - REMOVE bordas */
+html.high-contrast aside [class*="bg-[url"] {
+  opacity: 1 !important;
+  filter: none !important;
+  border: none !important;
+  outline: none !important;
+}
+
+/* Avatar component - REMOVE bordas */
+html.high-contrast aside [class*="Avatar"] {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background-color: transparent !important;
+}
+
+/* Links e botões de navegação */
+html.high-contrast aside a,
+html.high-contrast aside nav a {
+  background-color: #000000 !important;
+  border: 2px solid #ffffff !important;
+  text-decoration: none !important;
+}
+
+/* Hover nos links de navegação */
+html.high-contrast aside a:hover,
+html.high-contrast aside nav a:hover {
+  background-color: #ffffff !important;
+  border: 2px solid #ffffff !important;
+}
+
+/* Texto dos links em hover */
+html.high-contrast aside a:hover span,
+html.high-contrast aside nav a:hover span {
+  color: #000000 !important;
+}
+
+/* Container dos ícones - SEM bordas */
+html.high-contrast aside nav div[class*="flex"],
+html.high-contrast aside a div[class*="flex"] {
+  border: none !important;
+  outline: none !important;
+}
+
+/* Ícones/imagens dentro dos links de navegação - SEMPRE visíveis SEM bordas */
+html.high-contrast aside nav img,
+html.high-contrast aside a img:not([alt="Robot"]):not([src*="robot-logo"]) {
+  opacity: 1 !important;
+  filter: none !important;
+  background-color: transparent !important;
+  border: none !important;
+  outline: none !important;
+}
+
+/* Ícones em hover - inverte cores para contrastar com fundo branco */
+html.high-contrast aside a:hover img:not([alt="Robot"]):not([src*="robot-logo"]),
+html.high-contrast aside nav a:hover img:not([alt="Robot"]):not([src*="robot-logo"]) {
+  filter: invert(1) brightness(0) !important;
+}
+
+/* Botão de upgrade */
+html.high-contrast aside button:not(nav button) {
+  background-color: #000000 !important;
+  border: 3px solid #ffffff !important;
+}
+
+html.high-contrast aside button:not(nav button):hover {
+  background-color: #ffffff !important;
+  border: 3px solid #ffffff !important;
+}
+
+html.high-contrast aside button:not(nav button):hover span {
+  color: #000000 !important;
+}
+
+/* Logo wiseconnect */
+html.high-contrast aside div:last-child div {
+  color: #ffffff !important;
+}
+
+/* Avatar fallback */
+html.high-contrast aside [class*="AvatarFallback"] {
+  background-color: transparent !important;
+  border: none !important;
+  outline: none !important;
+  color: #ffffff !important;
+}
+
+/* ========================================== */
+
+/* Ícones SVG - MANTÉM VISÍVEIS */
+html.high-contrast svg {
+  color: #ffffff !important;
+  opacity: 1 !important;
+}
+
+html.high-contrast svg path {
+  fill: currentColor;
+  stroke: currentColor;
+}
+
+/* Checkboxes e Radio buttons */
+html.high-contrast input[type="checkbox"],
+html.high-contrast input[type="radio"] {
+  border: 2px solid #ffffff !important;
+  background-color: #000000 !important;
+}
+
+html.high-contrast input[type="checkbox"]:checked,
+html.high-contrast input[type="radio"]:checked {
+  background-color: #ffffff !important;
+}
+
+/* Checkboxes com ícones dentro (como CheckIcon) */
+html.high-contrast input[type="checkbox"]:checked svg {
+  color: #000000 !important;
+}
+
+/* Slide Indicators (bolinhas de navegação) */
+html.high-contrast [class*="rounded-full"][class*="w-2"],
+html.high-contrast [class*="rounded-full"][class*="h-2"] {
+  background-color: #ffffff !important;
+  border: 2px solid #ffffff !important;
+  opacity: 1 !important;
+}
+
+/* REMOVE apenas efeitos decorativos de blur, NÃO o conteúdo */
+html.high-contrast [class*="blur-lg"],
+html.high-contrast [class*="blur-xl"] {
+  opacity: 0 !important;
+  display: none !important;
+}
+
+/* MANTÉM opacity normal para elementos importantes */
+html.high-contrast [class*="opacity-"]:not([class*="blur"]) {
+  opacity: 1 !important;
+}
+
+/* Imagens SEMPRE visíveis SEM filtros ou fundos (exceto ícones em hover) */
+html.high-contrast img {
+  opacity: 1 !important;
+  filter: none !important;
+  display: block !important;
+  background-color: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* ESPECIAL: Imagens de ícones PNG coloridos mantém suas cores originais */
+html.high-contrast img[src*=".png"] {
+  filter: none !important;
+  opacity: 1 !important;
+  border: none !important;
+  outline: none !important;
+}
+
+/* Remove bordas de containers de imagens */
+html.high-contrast [class*="Avatar"],
+html.high-contrast [class*="avatar"] {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Cards específicos */
+html.high-contrast [class*="Card"] {
+  background-color: #000000 !important;
+  border: 2px solid #ffffff !important;
+}
+
+/* Background do body/main */
+html.high-contrast body,
+html.high-contrast main {
+  background-color: #000000 !important;
+}
+
+/* Elementos de jogo visíveis */
+html.high-contrast [class*="game"],
+html.high-contrast [class*="Game"] {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  border: 2px solid #ffffff !important;
+}
+
+/* Notícias visíveis */
+html.high-contrast [class*="news"],
+html.high-contrast [class*="News"] {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  border: 2px solid #ffffff !important;
+}
+
+/* Line-clamp mantém o texto visível */
+html.high-contrast [class*="line-clamp"] {
+  color: #ffffff !important;
+  opacity: 1 !important;
+}
+
+/* Emojis e ícones de texto SEMPRE visíveis */
+html.high-contrast .text-2xl,
+html.high-contrast .text-xl,
+html.high-contrast .text-lg {
+  opacity: 1 !important;
+  display: inline-block !important;
+}
+
+/* Área do input de chat */
+html.high-contrast form > div {
+  background-color: #000000 !important;
+  border: 2px solid #ffffff !important;
+}
+
+/* Botão de enviar dentro do input */
+html.high-contrast form button[type="submit"] {
+  background-color: #000000 !important;
+}
+
+html.high-contrast form button[type="submit"]:hover {
+  background-color: #ffffff !important;
+}
