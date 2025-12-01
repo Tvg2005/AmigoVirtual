@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Users, Brain } from 'lucide-react';
+import { Users, Brain, ArrowLeft } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useAchievements } from './hooks/useAchievements';
 import AchievementsSection from './components/AchievementsSection';
 import AchievementNotification from './components/AchievementNotification';
@@ -10,7 +11,8 @@ import MemoryGame from './components/MemoryGame';
 import ColoringGame from './components/ColoringGame';
 import MusicGame from './components/MusicGame';
 import JigsawGame from './components/JigsawGame';
-import CrosswordGame from './components/CrosswordGame'; 
+import CrosswordGame from './components/CrosswordGame';
+import AccessibilityMenu from './components/AccessibilityMenu'; 
 
 
 type GameType = 'menu' | 'solitaire' | 'sudoku' | 'memory' | 'coloring' | 'music' | 'jigsaw' | 'crossword';
@@ -41,20 +43,34 @@ function Games() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 relative">
+      {/* Botão de Acessibilidade */}
+      <div className="absolute top-4 right-4 z-20">
+        <AccessibilityMenu />
+      </div>
+
       <header className="bg-white shadow-sm border-b border-blue-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
-            <div 
-              className="flex items-center space-x-3 cursor-pointer transition-transform hover:scale-105"
-              onClick={() => setCurrentGame('menu')}
-            >
-              <div className="bg-blue-500 text-white p-2 rounded-xl">
-                <Brain className="w-8 h-8" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold text-blue-800">ElizIA</h1>
-                <p className="text-sm text-blue-600">Sala de Jogos</p>
+            <div className="flex items-center space-x-4">
+              <Link 
+                to="/dashboard" 
+                className="text-blue-500 hover:text-blue-700 transition-colors"
+                title="Voltar ao dashboard"
+              >
+                <ArrowLeft className="h-6 w-6" />
+              </Link>
+              <div 
+                className="flex items-center space-x-3 cursor-pointer transition-transform hover:scale-105"
+                onClick={() => setCurrentGame('menu')}
+              >
+                <div className="bg-blue-500 text-white p-2 rounded-xl">
+                  <Brain className="w-8 h-8" />
+                </div>
+                <div>
+                  <h1 className="text-3xl font-bold text-blue-800">ElizIA</h1>
+                  <p className="text-sm text-blue-600">Sala de Jogos</p>
+                </div>
               </div>
             </div>
             <div className="flex items-center space-x-4">

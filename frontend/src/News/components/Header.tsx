@@ -1,5 +1,6 @@
 import React from 'react';
-import { Search } from 'lucide-react';
+import { Search, ArrowLeft } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import AccessibilityMenu from './AccessibilityMenu';
 
 interface HeaderProps {
@@ -20,15 +21,24 @@ export default function Header({ searchQuery, setSearchQuery, onSearch }: Header
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
-          <div className="flex items-center space-x-3">
-            <div>
-              <img src="../../public/robot copy.png" alt="elizIA Logo" className="h-12 w-12 object-contain" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-blue-700 tracking-tight">
-                eliz<span className="text-blue-400">IA</span>
-              </h1>
-              <p className="text-blue-600 text-xs font-medium">Notícias em Tempo Real</p>
+          <div className="flex items-center space-x-4">
+            <Link 
+              to="/dashboard" 
+              className="text-blue-500 hover:text-blue-700 transition-colors"
+              title="Voltar ao dashboard"
+            >
+              <ArrowLeft className="h-6 w-6" />
+            </Link>
+            <div className="flex items-center space-x-3">
+              <div>
+                <img src="../../public/robot copy.png" alt="elizIA Logo" className="h-12 w-12 object-contain" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-blue-700 tracking-tight">
+                  eliz<span className="text-blue-400">IA</span>
+                </h1>
+                <p className="text-blue-600 text-xs font-medium">Notícias em Tempo Real</p>
+              </div>
             </div>
           </div>
 

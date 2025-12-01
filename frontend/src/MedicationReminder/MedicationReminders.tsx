@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, Plus, Edit, Trash2, ChevronLeft, ChevronRight, ArrowLeft } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { Link } from 'react-router-dom';
+import AccessibilityMenu from './components/AccessibilityMenu';
 
 interface Medication {
   id: string;
@@ -190,12 +191,17 @@ export default function MedicationReminders() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-blue-100 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-blue-100 to-indigo-100 relative">
+      {/* Botão de Acessibilidade */}
+      <div className="absolute top-4 right-4 z-20">
+        <AccessibilityMenu />
+      </div>
+
       <div className="bg-white/80 backdrop-blur-sm shadow-sm border-b border-blue-200">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Link to="/dashboard" className="text-blue-500 hover:text-blue-700">
+              <Link to="/dashboard" className="text-blue-500 hover:text-blue-700 transition-colors" title="Voltar ao dashboard">
                 <ArrowLeft className="h-6 w-6" />
               </Link>
               <h1 className="text-2xl font-bold text-blue-900">Lembretes de Remédios</h1>

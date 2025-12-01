@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Lock } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { Link, useNavigate } from 'react-router-dom';
+import AccessibilityMenu from './components/AccessibilityMenu';
 
 interface FormData {
   fullName: string;
@@ -98,6 +99,11 @@ export default function Register() {
 
   return (
     <div className="relative w-full min-h-screen flex bg-[#BAD1E6]">
+      {/* Botão de Acessibilidade */}
+      <div className="absolute top-4 right-4 z-20">
+        <AccessibilityMenu />
+      </div>
+      
       <div className="w-full z-10 flex flex-col md:flex-row items-center justify-center">
         <div className="md:w-1/2 flex items-center justify-center p-8">
           <div className="text-center">

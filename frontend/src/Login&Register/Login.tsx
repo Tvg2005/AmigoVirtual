@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Lock, Mail } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { Link, useNavigate } from 'react-router-dom';
+import AccessibilityMenu from './components/AccessibilityMenu';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -59,6 +60,9 @@ export default function Login() {
     <div className="min-h-screen flex">
       {/* Left side */}
       <div className="w-1/2 flex flex-col justify-center items-center px-8 relative overflow-hidden bg-white">
+        {/* Botão de Acessibilidade */}
+        
+        
         {/* Imagem no canto superior esquerdo */}
         <img
           src='/img-canto.png'
@@ -133,6 +137,9 @@ export default function Login() {
 
       {/* Right side */}
       <div className="w-1/2 h-screen overflow-hidden bg-white">
+      <div className="absolute top-4 right-4 z-20">
+          <AccessibilityMenu />
+        </div>
         <img
           src="/img-idosos.png"
           alt="Idosos"

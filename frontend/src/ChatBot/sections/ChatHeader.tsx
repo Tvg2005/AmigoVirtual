@@ -4,7 +4,9 @@ import {
   SearchIcon,
   SettingsIcon,
   SunIcon,
+  ArrowLeft,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "../components/button";
 import { Input } from "../components/input";
 import AccessibilityMenu from "../components/AccessibilityMenu";
@@ -45,15 +47,24 @@ export const ChatHeader = ({ isDarkMode, onThemeToggle }: ChatHeaderProps): JSX.
   return (
     <header className="fixed top-0 left-0 right-0 h-20 bg-gradient-to-r from-blue-300 to-blue-200 border-b border-blue-300 flex items-center justify-between px-8 z-20">
       {/* Logo */}
-          <div className="flex items-center space-x-3">
-            <div>
-              <img src="../../public/robot copy.png" alt="elizIA Logo" className="h-12 w-12 object-contain" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-blue-700 tracking-tight">
-                eliz<span className="text-blue-400">IA</span>
-              </h1>
-              <p className="text-blue-600 text-xs font-medium">Notícias em Tempo Real</p>
+          <div className="flex items-center space-x-4">
+            <Link 
+              to="/dashboard" 
+              className="text-blue-500 hover:text-blue-700 transition-colors"
+              title="Voltar ao dashboard"
+            >
+              <ArrowLeft className="h-6 w-6" />
+            </Link>
+            <div className="flex items-center space-x-3">
+              <div>
+                <img src="../../public/robot copy.png" alt="elizIA Logo" className="h-12 w-12 object-contain" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-blue-700 tracking-tight">
+                  eliz<span className="text-blue-400">IA</span>
+                </h1>
+                <p className="text-blue-600 text-xs font-medium">Notícias em Tempo Real</p>
+              </div>
             </div>
           </div>
 
